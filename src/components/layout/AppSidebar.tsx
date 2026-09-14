@@ -10,10 +10,10 @@ import {
   Bell,
   Settings,
   ChevronLeft,
-  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types/navigation';
+import { SchoolBrand } from '@/components/brand/SchoolBrand';
 
 const mainNav: NavItem[] = [
   { label: 'Home', path: '/app', icon: LayoutDashboard },
@@ -49,23 +49,24 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         collapsed ? 'w-[var(--sidebar-collapsed-width)]' : 'w-[var(--sidebar-width)]'
       )}
     >
-      {/* Logo */}
-      <div className="flex h-[var(--topbar-height)] items-center gap-3 border-b border-sidebar-border px-4">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-          <GraduationCap className="h-4 w-4 text-primary-foreground" />
+      <div className={cn(
+        'flex h-[var(--topbar-height)] items-center border-b border-sidebar-border',
+        collapsed ? 'justify-center px-2' : 'px-3'
+      )}>
+        <div className={cn(
+          'flex items-center justify-center rounded-lg bg-white',
+          collapsed ? 'h-9 w-9 p-1' : 'h-11 w-full px-2 py-1'
+        )}>
+          {collapsed ? (
+            <SchoolBrand variant="compact" imageClassName="h-7 w-7" />
+          ) : (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full">
+              <SchoolBrand imageClassName="mx-auto h-9 max-w-[12rem]" />
+            </motion.div>
+          )}
         </div>
-        {!collapsed && (
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="font-heading text-base font-bold tracking-tight text-sidebar-foreground"
-          >
-            EDUCORE
-          </motion.span>
-        )}
       </div>
 
-      {/* Main navigation */}
       <nav className="flex-1 overflow-y-auto scrollbar-thin px-2 py-3 space-y-1">
         {mainNav.map((item) => {
           const active = isActive(item.path);
@@ -83,7 +84,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
               <item.icon className={cn('h-[18px] w-[18px] shrink-0', active && 'text-sidebar-primary')} />
               {!collapsed && <span>{item.label}</span>}
               {!collapsed && item.badge && (
-                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-sidebar-primary px-1.5 text-[10px] font-semibold text-sidebar-primary-foreground">
                   {item.badge}
                 </span>
               )}
@@ -92,7 +93,6 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
         })}
       </nav>
 
-      {/* Bottom section */}
       <div className="border-t border-sidebar-border px-2 py-3 space-y-1">
         {bottomNav.map((item) => {
           const active = isActive(item.path);
@@ -113,7 +113,6 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
           );
         })}
 
-        {/* Collapse toggle */}
         <button
           onClick={onToggle}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"

@@ -28,7 +28,7 @@ export function AppTopbar({ sidebarCollapsed, pageTitle }: AppTopbarProps) {
     <>
       <header
         className={cn(
-          'fixed top-0 right-0 z-30 flex h-[var(--topbar-height)] items-center justify-between border-b border-border bg-background/80 glass px-6 transition-all duration-300',
+          'fixed top-0 right-0 z-30 flex h-[var(--topbar-height)] items-center justify-between border-b border-border bg-background/95 px-6 transition-all duration-300',
           sidebarCollapsed
             ? 'left-[var(--sidebar-collapsed-width)]'
             : 'left-[var(--sidebar-width)]',

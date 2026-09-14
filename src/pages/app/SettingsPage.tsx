@@ -28,7 +28,7 @@ export default function SettingsPage() {
               <div>
                 <h2 className="font-heading text-lg font-bold text-foreground">John Smith</h2>
                 <p className="text-sm text-muted-foreground">Student · Grade 11B</p>
-                <p className="text-xs text-muted-foreground">john.smith@educore.edu</p>
+                <p className="text-xs text-muted-foreground">john.smith@example.edu</p>
               </div>
             </div>
           </div>
@@ -38,7 +38,7 @@ export default function SettingsPage() {
               {[
                 { label: 'Full Name', value: 'John Smith' },
                 { label: 'Student ID', value: 'STU-2024-0847' },
-                { label: 'Email', value: 'john.smith@educore.edu' },
+                { label: 'Email', value: 'john.smith@example.edu' },
                 { label: 'Phone', value: '+1 (555) 012-3456' },
                 { label: 'Date of Birth', value: 'March 15, 2008' },
                 { label: 'Guardian', value: 'Robert Smith' },
@@ -101,7 +101,7 @@ export default function SettingsPage() {
               <LogOut className="h-4 w-4 text-destructive" />
               <div>
                 <p className="text-sm font-medium text-foreground">Sign out</p>
-                <p className="text-xs text-muted-foreground">Sign out of your EDUCORE account</p>
+                <p className="text-xs text-muted-foreground">Sign out of your account</p>
               </div>
               <button className="ml-auto rounded-xl border border-destructive/30 px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors">Sign Out</button>
             </div>

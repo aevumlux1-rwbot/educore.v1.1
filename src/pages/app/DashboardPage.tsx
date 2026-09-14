@@ -79,22 +79,19 @@ export default function DashboardPage() {
 
   return (
     <PageContainer>
-      {/* Hero banner */}
       <div className="relative mb-6 overflow-hidden rounded-2xl">
         <img src={campusHero} alt="Campus" className="h-40 w-full object-cover md:h-48" />
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/60 to-transparent" />
         <div className="absolute bottom-4 left-5 md:bottom-6 md:left-8">
           <h1 className="font-heading text-xl font-bold text-primary-foreground md:text-2xl">Welcome back</h1>
-          <p className="mt-0.5 text-sm text-primary-foreground/80">EDUCORE Dashboard — Everything at a glance</p>
+          <p className="mt-0.5 text-sm text-primary-foreground/80">Colégio Deus Connosco — Everything at a glance</p>
         </div>
       </div>
 
-      {/* Stats row */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {stats.map((s) => <StatsCard key={s.label} {...s} />)}
       </div>
 
-      {/* Alerts */}
       {alerts.length > 0 && (
         <div className="mb-6 space-y-2">
           {alerts.map((a, i) => (
@@ -103,7 +100,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Quick Actions */}
       <div className="mb-6">
         <SectionHeader title="Quick Actions" />
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -113,11 +109,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Main grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left column */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Growth card */}
           <div className="rounded-2xl border border-border bg-card p-5">
             <SectionHeader title="Growth" subtitle="Academy growth over time" action={
               <span className="rounded-lg bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">Monthly</span>
@@ -136,7 +129,6 @@ export default function DashboardPage() {
             <p className="mt-4 text-center text-sm text-muted-foreground">Academy growth</p>
           </div>
 
-          {/* Top Teachers */}
           <div className="rounded-2xl bg-surface-dark p-5">
             <SectionHeader title="Top Teachers"
               className="[&_h2]:text-surface-dark-foreground [&_p]:text-surface-dark-foreground/60"
@@ -162,7 +154,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Recent Activity */}
           <div className="rounded-2xl border border-border bg-card p-5">
             <SectionHeader title="Recent Activity" action={
               <button onClick={() => navigate('/app/feed')} className="text-xs font-medium text-primary hover:underline">View Feed</button>
@@ -173,12 +164,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Right column */}
         <div className="space-y-6">
-          {/* Finance summary */}
           <FinanceSummaryCard totalDue="$48,500" paid="$32,200" overdue="$3,800" pending="$12,500" />
 
-          {/* Events */}
           <div className="rounded-2xl border border-border bg-card p-5">
             <SectionHeader title="Upcoming Events" subtitle="Scheduled events & tests" action={
               <button onClick={() => navigate('/app/academic')} className="rounded-lg border border-border px-3 py-1 text-xs font-medium text-foreground hover:bg-muted transition-colors">View All</button>
@@ -190,7 +178,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Countdown card */}
       <div className="mt-6 rounded-2xl border border-border bg-card p-5">
         <div className="flex flex-wrap items-center gap-6">
           <div>

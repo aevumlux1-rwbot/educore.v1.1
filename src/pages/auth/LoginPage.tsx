@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { GraduationCap, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
+import { SchoolBrand } from '@/components/brand/SchoolBrand';
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -9,10 +10,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm animate-fade-in">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary">
-            <GraduationCap className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <h1 className="font-heading text-xl font-bold text-foreground">Sign in to EDUCORE</h1>
+          <SchoolBrand className="mb-4 justify-center" imageClassName="h-20" />
+          <h1 className="font-heading text-xl font-bold text-foreground">Colégio Deus Connosco</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">Enter your credentials to continue</p>
         </div>
 
