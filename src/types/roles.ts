@@ -1,29 +1,46 @@
 export type UserRole =
-  | 'super_admin'
-  | 'school_admin'
-  | 'secretary'
-  | 'finance'
-  | 'academic_coordinator'
-  | 'teacher'
+  | 'student'
   | 'guardian'
-  | 'student';
+  | 'teacher'
+  | 'pedagogy'
+  | 'executive'
+  | 'secretary'
+  | 'finance';
 
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
-  avatar?: string;
   role: UserRole;
-  institution?: string;
+  institution: string;
 }
 
 export const ROLE_LABELS: Record<UserRole, string> = {
-  super_admin: 'Super Admin',
-  school_admin: 'Administration',
-  secretary: 'Secretary',
-  finance: 'Finance & Treasury',
-  academic_coordinator: 'Academic Coordination',
-  teacher: 'Teacher',
-  guardian: 'Guardian',
-  student: 'Student',
+  student: 'Aluno',
+  guardian: 'Encarregado',
+  teacher: 'Professor',
+  pedagogy: 'Pedagogia',
+  executive: 'Direcção',
+  secretary: 'Secretaria',
+  finance: 'Finanças',
+};
+
+export const ROLE_HOME: Record<UserRole, string> = {
+  student: '/app/student/dashboard',
+  guardian: '/app/guardian/dashboard',
+  teacher: '/app/teacher/dashboard',
+  pedagogy: '/app/pedagogy/dashboard',
+  executive: '/app/executive/dashboard',
+  secretary: '/app/secretary/dashboard',
+  finance: '/app/finance/dashboard',
+};
+
+export const ROLE_NOTIFICATIONS: Record<UserRole, string> = {
+  student: '/app/student/notifications',
+  guardian: '/app/guardian/notifications',
+  teacher: '/app/teacher/notifications',
+  pedagogy: '/app/pedagogy/notifications',
+  executive: '/app/executive/notifications',
+  secretary: '/app/secretary/notifications',
+  finance: '/app/finance/notifications',
 };
