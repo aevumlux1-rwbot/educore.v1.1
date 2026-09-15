@@ -20,9 +20,7 @@ import {
   useTransform,
 } from 'framer-motion';
 import { SchoolBrand } from '@/components/brand/SchoolBrand';
-import campusHero from '@/assets/school/campus-hero-v2.jpg';
-import campusCourtyard from '@/assets/school/campus-courtyard-v2.jpg';
-import campusSports from '@/assets/school/campus-sports-v2.jpg';
+import campusMain from '@/assets/school/campus-main.jpg';
 import facilityClassrooms from '@/assets/school/facility-classrooms.jpg';
 import facilityComputerLab from '@/assets/school/facility-computer-lab.jpg';
 
@@ -34,7 +32,6 @@ const roleExperiences = [
     icon: GraduationCap,
     label: 'Aluno',
     eyebrow: 'Percurso individual',
-    title: 'O essencial do dia escolar num só lugar.',
     copy: 'Disciplinas, notas, assiduidade, horário, conteúdos, comunicação e informação financeira organizada para o aluno.',
     items: ['Disciplinas', 'Notas', 'Assiduidade', 'Horário'],
   },
@@ -43,7 +40,6 @@ const roleExperiences = [
     icon: Users,
     label: 'Encarregado',
     eyebrow: 'Acompanhamento',
-    title: 'Acompanhar com contexto, sem perder o fio ao percurso.',
     copy: 'Visão académica, presenças, pagamentos, avisos e comunicação ligada aos educandos associados ao perfil.',
     items: ['Educandos', 'Desempenho', 'Presenças', 'Pagamentos'],
   },
@@ -52,7 +48,6 @@ const roleExperiences = [
     icon: BookOpen,
     label: 'Professor',
     eyebrow: 'Trabalho pedagógico',
-    title: 'Turmas, avaliações e conteúdos no mesmo fluxo de trabalho.',
     copy: 'O professor alterna entre turmas, presenças, lançamento de notas, conteúdos e comunicação sem sair do seu contexto.',
     items: ['Turmas', 'Presenças', 'Avaliações', 'Conteúdos'],
   },
@@ -61,7 +56,6 @@ const roleExperiences = [
     icon: Landmark,
     label: 'Pedagogia',
     eyebrow: 'Coordenação',
-    title: 'Uma leitura transversal do acompanhamento académico.',
     copy: 'Indicadores, aprovações, turmas, professores, risco académico e relatórios reunidos para a coordenação pedagógica.',
     items: ['Indicadores', 'Aprovações', 'Risco académico', 'Relatórios'],
   },
@@ -70,7 +64,6 @@ const roleExperiences = [
     icon: Building2,
     label: 'Direcção',
     eyebrow: 'Visão institucional',
-    title: 'Decisão apoiada por uma visão integrada da escola.',
     copy: 'Académico, financeiro, matrículas, aprovações, relatórios e auditoria acessíveis numa experiência orientada à gestão.',
     items: ['Académico', 'Financeiro', 'Matrículas', 'Auditoria'],
   },
@@ -79,7 +72,6 @@ const roleExperiences = [
     icon: UserRoundCheck,
     label: 'Secretaria',
     eyebrow: 'Operação escolar',
-    title: 'Processos administrativos com continuidade e clareza.',
     copy: 'Admissões, matrículas, alunos, documentos, turmas e regularidade organizados por tarefa e responsabilidade.',
     items: ['Admissões', 'Matrículas', 'Alunos', 'Documentos'],
   },
@@ -88,7 +80,6 @@ const roleExperiences = [
     icon: Wallet,
     label: 'Finanças',
     eyebrow: 'Operação financeira',
-    title: 'Do pagamento à validação, sem perder rastreabilidade.',
     copy: 'Pagamentos, validações, facturas, recibos, devedores, obrigações e tesouraria reunidos numa área dedicada.',
     items: ['Pagamentos', 'Validação', 'Facturas', 'Tesouraria'],
   },
@@ -268,7 +259,7 @@ export default function LandingPage() {
             <div className="relative min-h-[54vh] overflow-hidden lg:min-h-full">
               <motion.img
                 style={{ scale: heroScale, y: heroY }}
-                src={campusHero}
+                src={campusMain}
                 alt="Campus do Colégio Deus Connosco"
                 fetchPriority="high"
                 className="absolute inset-0 h-full w-full object-cover"
@@ -301,7 +292,7 @@ export default function LandingPage() {
 
               <div className="space-y-5">
                 <figure className="relative overflow-hidden rounded-[1.8rem] bg-white/5">
-                  <img src={campusCourtyard} alt="Pátio do Colégio Deus Connosco" className="aspect-[16/9] w-full object-cover" loading="lazy" />
+                  <img src={campusMain} alt="Campus do Colégio Deus Connosco" className="aspect-[16/9] w-full object-cover object-center" loading="lazy" />
                   <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/70 to-transparent p-6 pt-20">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-orange-200">01 · Campus</p>
@@ -329,7 +320,7 @@ export default function LandingPage() {
                 </div>
 
                 <figure className="relative overflow-hidden rounded-[1.8rem] bg-white/5">
-                  <img src={campusSports} alt="Área desportiva do Colégio Deus Connosco" className="aspect-[16/8] w-full object-cover" loading="lazy" />
+                  <img src={campusMain} alt="Área exterior do Colégio Deus Connosco" className="aspect-[16/8] w-full object-cover object-bottom" loading="lazy" />
                   <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-6 pt-16">
                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-200">04 · Vida escolar</p>
                     <p className="mt-2 max-w-lg font-display text-2xl">Uma instituição é mais do que uma interface.</p>
@@ -428,7 +419,7 @@ export default function LandingPage() {
               </div>
 
               <div className="relative min-h-[360px] overflow-hidden lg:min-h-[520px]">
-                <img src={campusCourtyard} alt="Campus do Colégio Deus Connosco" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                <img src={campusMain} alt="Campus do Colégio Deus Connosco" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
                 <div className="absolute inset-0 bg-gradient-to-r from-[#0b2e59] via-[#0b2e59]/10 to-transparent" />
                 <div className="absolute bottom-8 right-8 hidden border-r-4 border-[hsl(var(--brand-orange))] pr-5 text-right lg:block">
                   <p className="font-display text-3xl">Colégio</p>
