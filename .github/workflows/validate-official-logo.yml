@@ -1,0 +1,31 @@
+name: Validate official school logo
+
+on:
+  push:
+    branches:
+      - presentation/colegio-deus-connosco
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        working-directory: frontend
+        run: npm install --no-audit --no-fund
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+      - name: Test
+        working-directory: frontend
+        run: npm run test
+      - name: Brand guard
+        run: |
+          test -s frontend/src/assets/brand/colegio-deus-connosco-logo.png
+          test -s frontend/src/assets/brand/colegio-deus-connosco-mark.png
+          grep -q "Colégio Deus Connosco" frontend/src/components/brand/SchoolBrand.tsx
+          grep -q 'to="/login"' frontend/src/pages/public/LandingPage.tsx
+          grep -q 'Perfil de acesso' frontend/src/pages/auth/LoginPage.tsx
