@@ -1,0 +1,36 @@
+name: Validate landing and portal integration
+
+on:
+  push:
+    branches:
+      - presentation/colegio-deus-connosco
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        working-directory: frontend
+        run: npm install --no-audit --no-fund
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+      - name: Test
+        working-directory: frontend
+        run: npm run test
+      - name: Portal integration guard
+        run: |
+          grep -q 'path="/login"' frontend/src/app/router/appRouter.tsx
+          grep -q 'student/dashboard' frontend/src/app/router/appRouter.tsx
+          grep -q 'guardian/dashboard' frontend/src/app/router/appRouter.tsx
+          grep -q 'teacher/dashboard' frontend/src/app/router/appRouter.tsx
+          grep -q 'pedagogy/dashboard' frontend/src/app/router/appRouter.tsx
+          grep -q 'executive/dashboard' frontend/src/app/router/appRouter.tsx
+          grep -q 'secretary/dashboard' frontend/src/app/router/appRouter.tsx
+          grep -q 'finance/dashboard' frontend/src/app/router/appRouter.tsx
+          grep -q 'useEffect' frontend/src/pages/auth/LoginPage.tsx
+          grep -q 'login(email, password, selectedRole, remember)' frontend/src/pages/auth/LoginPage.tsx
