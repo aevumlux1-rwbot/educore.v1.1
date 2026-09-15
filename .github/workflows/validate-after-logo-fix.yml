@@ -1,0 +1,29 @@
+name: Validate after logo fix
+
+on:
+  push:
+    branches:
+      - presentation/colegio-deus-connosco
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify logo format
+        run: |
+          file frontend/src/assets/brand/colegio-deus-connosco-logo.png | grep -q 'PNG image data'
+          file frontend/src/assets/brand/colegio-deus-connosco-mark.png | grep -q 'PNG image data'
+          file frontend/public/favicon.png | grep -q 'PNG image data'
+      - name: Install
+        working-directory: frontend
+        run: npm install --no-audit --no-fund
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+      - name: Test
+        working-directory: frontend
+        run: npm run test
