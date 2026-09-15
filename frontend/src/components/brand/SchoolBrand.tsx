@@ -15,17 +15,31 @@ export function SchoolBrand({
 }: SchoolBrandProps) {
   const asset = variant === 'compact' ? schoolMark : schoolLogo;
 
+  if (variant === 'compact') {
+    return (
+      <div className={cn('flex min-w-0 items-center', className)}>
+        <img
+          src={asset}
+          alt="Colégio Deus Connosco"
+          className={cn('block h-10 w-10 shrink-0 object-contain', imageClassName)}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className={cn('flex min-w-0 items-center', className)}>
+    <div className={cn('flex min-w-0 items-center gap-3', className)}>
       <img
         src={asset}
-        alt="Colégio Deus Connosco"
-        className={cn(
-          'block shrink-0 object-contain',
-          variant === 'compact' ? 'h-8 w-8' : 'h-10 w-auto max-w-full',
-          imageClassName
-        )}
+        alt="Símbolo do Colégio Deus Connosco"
+        className={cn('block h-14 w-14 shrink-0 object-contain', imageClassName)}
       />
+      <div className="hidden min-w-0 leading-none sm:block">
+        <span className="block text-[10px] font-bold uppercase tracking-[0.22em] text-primary/70">Colégio</span>
+        <span className="mt-1 block whitespace-nowrap font-heading text-[15px] font-bold tracking-[-0.02em] text-primary">
+          Deus Connosco
+        </span>
+      </div>
     </div>
   );
 }
