@@ -1,262 +1,453 @@
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   BookOpen,
   Building2,
-  CheckCircle2,
   GraduationCap,
-  HeartHandshake,
   Landmark,
-  Laptop,
   MessageCircle,
   ShieldCheck,
-  Sparkles,
   UserRoundCheck,
   Users,
   Wallet,
 } from 'lucide-react';
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from 'framer-motion';
 import { SchoolBrand } from '@/components/brand/SchoolBrand';
-import campusMain from '@/assets/school/campus-main.jpg';
+import campusHero from '@/assets/school/campus-hero-v2.jpg';
+import campusCourtyard from '@/assets/school/campus-courtyard-v2.jpg';
+import campusSports from '@/assets/school/campus-sports-v2.jpg';
 import facilityClassrooms from '@/assets/school/facility-classrooms.jpg';
 import facilityComputerLab from '@/assets/school/facility-computer-lab.jpg';
 
-const profiles = [
-  { icon: GraduationCap, label: 'Aluno' },
-  { icon: Users, label: 'Encarregado' },
-  { icon: BookOpen, label: 'Professor' },
-  { icon: Landmark, label: 'Pedagogia' },
-  { icon: Building2, label: 'Direcção' },
-  { icon: UserRoundCheck, label: 'Secretaria' },
-  { icon: Wallet, label: 'Finanças' },
+const ease = [0.2, 0.8, 0.2, 1] as const;
+
+const roleExperiences = [
+  {
+    id: 'student',
+    icon: GraduationCap,
+    label: 'Aluno',
+    eyebrow: 'Percurso individual',
+    title: 'O essencial do dia escolar num só lugar.',
+    copy: 'Disciplinas, notas, assiduidade, horário, conteúdos, comunicação e informação financeira organizada para o aluno.',
+    items: ['Disciplinas', 'Notas', 'Assiduidade', 'Horário'],
+  },
+  {
+    id: 'guardian',
+    icon: Users,
+    label: 'Encarregado',
+    eyebrow: 'Acompanhamento',
+    title: 'Acompanhar com contexto, sem perder o fio ao percurso.',
+    copy: 'Visão académica, presenças, pagamentos, avisos e comunicação ligada aos educandos associados ao perfil.',
+    items: ['Educandos', 'Desempenho', 'Presenças', 'Pagamentos'],
+  },
+  {
+    id: 'teacher',
+    icon: BookOpen,
+    label: 'Professor',
+    eyebrow: 'Trabalho pedagógico',
+    title: 'Turmas, avaliações e conteúdos no mesmo fluxo de trabalho.',
+    copy: 'O professor alterna entre turmas, presenças, lançamento de notas, conteúdos e comunicação sem sair do seu contexto.',
+    items: ['Turmas', 'Presenças', 'Avaliações', 'Conteúdos'],
+  },
+  {
+    id: 'pedagogy',
+    icon: Landmark,
+    label: 'Pedagogia',
+    eyebrow: 'Coordenação',
+    title: 'Uma leitura transversal do acompanhamento académico.',
+    copy: 'Indicadores, aprovações, turmas, professores, risco académico e relatórios reunidos para a coordenação pedagógica.',
+    items: ['Indicadores', 'Aprovações', 'Risco académico', 'Relatórios'],
+  },
+  {
+    id: 'executive',
+    icon: Building2,
+    label: 'Direcção',
+    eyebrow: 'Visão institucional',
+    title: 'Decisão apoiada por uma visão integrada da escola.',
+    copy: 'Académico, financeiro, matrículas, aprovações, relatórios e auditoria acessíveis numa experiência orientada à gestão.',
+    items: ['Académico', 'Financeiro', 'Matrículas', 'Auditoria'],
+  },
+  {
+    id: 'secretary',
+    icon: UserRoundCheck,
+    label: 'Secretaria',
+    eyebrow: 'Operação escolar',
+    title: 'Processos administrativos com continuidade e clareza.',
+    copy: 'Admissões, matrículas, alunos, documentos, turmas e regularidade organizados por tarefa e responsabilidade.',
+    items: ['Admissões', 'Matrículas', 'Alunos', 'Documentos'],
+  },
+  {
+    id: 'finance',
+    icon: Wallet,
+    label: 'Finanças',
+    eyebrow: 'Operação financeira',
+    title: 'Do pagamento à validação, sem perder rastreabilidade.',
+    copy: 'Pagamentos, validações, facturas, recibos, devedores, obrigações e tesouraria reunidos numa área dedicada.',
+    items: ['Pagamentos', 'Validação', 'Facturas', 'Tesouraria'],
+  },
 ];
 
-const portalAreas = [
-  { icon: GraduationCap, title: 'Académico', copy: 'Avaliações, notas, assiduidade, horários, disciplinas e acompanhamento do percurso escolar.' },
-  { icon: Wallet, title: 'Finanças', copy: 'Propinas, pagamentos, validações, recibos, facturas, devedores e tesouraria.' },
-  { icon: MessageCircle, title: 'Comunicação', copy: 'Mensagens, avisos e notificações para a comunidade escolar.' },
-  { icon: BookOpen, title: 'Conhecimento', copy: 'Materiais e conteúdos de apoio organizados para o trabalho académico.' },
-  { icon: UserRoundCheck, title: 'Secretaria', copy: 'Admissões, matrículas, alunos, documentos e processos administrativos.' },
-  { icon: ShieldCheck, title: 'Gestão', copy: 'Indicadores, aprovações, auditoria e visão institucional.' },
+const ecosystem = [
+  {
+    icon: GraduationCap,
+    title: 'Académico',
+    copy: 'Percurso escolar, avaliações, notas, assiduidade, horários e acompanhamento.',
+  },
+  {
+    icon: Wallet,
+    title: 'Finanças',
+    copy: 'Pagamentos, validações, recibos, facturas, obrigações e tesouraria.',
+  },
+  {
+    icon: MessageCircle,
+    title: 'Comunicação & gestão',
+    copy: 'Mensagens, notificações, processos administrativos, aprovações e visão institucional.',
+  },
 ];
 
-const facilities = [
-  { image: campusMain, title: 'Campus', alt: 'Campus do Colégio Deus Connosco' },
-  { image: facilityClassrooms, title: 'Salas de aula', alt: 'Salas do Colégio Deus Connosco' },
-  { image: facilityComputerLab, title: 'Informática', alt: 'Laboratório de informática do Colégio Deus Connosco' },
-];
+function PortalPreview({ activeIndex }: { activeIndex: number }) {
+  const active = roleExperiences[activeIndex];
+  const Icon = active.icon;
+
+  return (
+    <div className="overflow-hidden rounded-[1.75rem] border border-white/20 bg-[#f8f5ef] text-foreground shadow-2xl shadow-black/20">
+      <div className="flex items-center justify-between border-b border-border/80 bg-white px-4 py-3 sm:px-5">
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ef6b4b]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#efc24b]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#66a86f]" />
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Portal escolar</span>
+      </div>
+
+      <div className="grid min-h-[430px] md:grid-cols-[180px,1fr]">
+        <aside className="hidden border-r border-border/80 bg-primary p-5 text-white md:block">
+          <SchoolBrand variant="compact" imageClassName="h-12 w-12 rounded-xl bg-white p-1.5" />
+          <div className="mt-8 space-y-2">
+            {active.items.map((item, index) => (
+              <div
+                key={item}
+                className={`rounded-xl px-3 py-2.5 text-xs font-semibold ${index === 0 ? 'bg-white text-primary' : 'text-white/70'}`}
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        <div className="p-5 sm:p-7 md:p-8">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.22, ease }}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary/60">{active.eyebrow}</p>
+                  <h3 className="mt-2 max-w-xl font-display text-3xl leading-tight text-primary sm:text-4xl">{active.label}</h3>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent">
+                  <Icon className="h-6 w-6 text-primary" />
+                </div>
+              </div>
+
+              <p className="mt-5 max-w-xl text-sm leading-6 text-muted-foreground">{active.copy}</p>
+
+              <div className="mt-8 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2">
+                {active.items.map((item, index) => (
+                  <div key={item} className="bg-white p-4 sm:p-5">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">0{index + 1}</span>
+                    <p className="mt-7 font-heading text-sm font-bold text-primary">{item}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex items-center gap-3 rounded-2xl bg-secondary px-4 py-3 text-xs text-muted-foreground">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
+                A navegação e os dados apresentados dependem da função que entrou no portal.
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function LandingPage() {
+  const heroRef = useRef<HTMLElement>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const [activeRole, setActiveRole] = useState(0);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, prefersReducedMotion ? 1 : 1.055]);
+  const heroY = useTransform(scrollYProgress, [0, 1], ['0%', prefersReducedMotion ? '0%' : '7%']);
+  const heroCopyY = useTransform(scrollYProgress, [0, 1], ['0%', prefersReducedMotion ? '0%' : '-5%']);
+  const heroCopyOpacity = useTransform(scrollYProgress, [0, 0.72], [1, prefersReducedMotion ? 1 : 0.55]);
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-5 py-3 md:px-8">
-          <Link to="/" aria-label="Colégio Deus Connosco" className="shrink-0">
-            <SchoolBrand imageClassName="h-14 md:h-16" />
+    <div className="min-h-screen overflow-x-clip bg-background text-foreground">
+      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur-xl">
+        <div className="mx-auto flex min-h-[82px] max-w-[1480px] items-center justify-between gap-4 px-5 md:px-8 lg:px-12">
+          <Link to="/" aria-label="Colégio Deus Connosco" className="shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4">
+            <SchoolBrand imageClassName="h-[58px] w-auto sm:h-[64px]" />
           </Link>
-          <nav className="hidden items-center gap-1 lg:flex">
-            <a href="#escola" className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground">A Escola</a>
-            <a href="#espacos" className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground">Espaços</a>
-            <a href="#portal" className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground">Portal</a>
-            <Link to="/apply" className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground">Candidatura</Link>
+
+          <nav className="hidden items-center gap-7 lg:flex" aria-label="Navegação principal">
+            <a href="#escola" className="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">A Escola</a>
+            <a href="#experiencia" className="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">Experiência</a>
+            <a href="#portal" className="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">Portal</a>
           </nav>
-          <div className="flex items-center gap-2">
-            <Link to="/login" className="rounded-xl px-4 py-2 text-sm font-semibold hover:bg-muted">Entrar</Link>
-            <Link to="/login" className="hidden items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90 sm:inline-flex">
-              Ver portal <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+
+          <Link
+            to="/login"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 sm:px-5"
+          >
+            Entrar no portal <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </header>
 
       <main>
-        <section className="relative overflow-hidden border-b border-border/70 bg-secondary/30">
-          <div className="absolute inset-x-0 top-0 -z-10 h-96 bg-gradient-to-b from-primary/10 to-transparent" />
-          <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 py-14 md:px-8 md:py-20 lg:grid-cols-[0.92fr,1.08fr] lg:py-24">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background px-3 py-1.5 text-xs font-semibold text-primary shadow-sm">
-                <Sparkles className="h-3.5 w-3.5" />
-                Colégio Deus Connosco · apresentação institucional
-              </div>
-              <h1 className="mt-6 font-heading text-5xl font-extrabold leading-[0.98] tracking-tight text-foreground md:text-6xl lg:text-7xl">
-                Educar hoje.
-                <span className="mt-1 block text-primary">Transformar amanhã.</span>
-              </h1>
-              <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
-                Uma experiência escolar que aproxima aprendizagem, acompanhamento, comunidade e gestão — agora também ligada por um portal digital feito para os diferentes perfis da escola.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link to="/login" className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-md transition hover:bg-primary/90">
-                  Aceder à demonstração <ArrowRight className="h-4 w-4" />
-                </Link>
-                <a href="#escola" className="inline-flex items-center rounded-xl border border-border bg-card px-6 py-3 text-sm font-semibold shadow-sm transition hover:bg-muted">
-                  Conhecer a experiência
-                </a>
-              </div>
-              <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-xs font-medium text-muted-foreground">
-                {['Identidade institucional', 'Espaços reais', '7 perfis de portal'].map((item) => (
-                  <span key={item} className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary" />{item}</span>
-                ))}
-              </div>
-            </div>
+        <section ref={heroRef} className="relative isolate min-h-[calc(100svh-82px)] overflow-hidden border-b border-border/70 bg-[#fbf8f2]">
+          <div className="pointer-events-none absolute left-0 top-0 h-full w-[7px] bg-[hsl(var(--brand-orange))]" />
+          <div className="pointer-events-none absolute right-[8%] top-0 hidden h-24 w-px bg-border lg:block" />
 
-            <div className="relative lg:pl-5">
-              <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-primary/10 blur-3xl" />
-              <div className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-2xl">
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <img src={campusMain} alt="Campus do Colégio Deus Connosco" className="h-full w-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-6 text-white md:p-8">
-                    <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/70">Colégio Deus Connosco</p>
-                    <p className="mt-2 font-heading text-2xl font-bold md:text-3xl">Uma escola com espaço para aprender, crescer e pertencer.</p>
-                  </div>
+          <div className="mx-auto grid min-h-[calc(100svh-82px)] max-w-[1480px] items-stretch lg:grid-cols-[0.78fr,1.22fr]">
+            <motion.div
+              style={{ y: heroCopyY, opacity: heroCopyOpacity }}
+              className="relative z-10 flex flex-col justify-center px-6 py-14 md:px-10 md:py-20 lg:px-12 xl:px-16"
+            >
+              <div className="max-w-[620px]">
+                <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.24em] text-primary">
+                  <span className="h-[2px] w-8 bg-[hsl(var(--brand-orange))]" />
+                  Colégio Deus Connosco
                 </div>
-                <div className="grid grid-cols-3 divide-x divide-border bg-card">
-                  {['Aprender', 'Acompanhar', 'Conectar'].map((item) => (
-                    <div key={item} className="px-3 py-4 text-center text-xs font-bold text-primary md:py-5 md:text-sm">{item}</div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-primary text-primary-foreground">
-          <div className="mx-auto grid max-w-7xl gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              ['Aprendizagem', 'A experiência académica no centro da vida escolar.'],
-              ['Acompanhamento', 'Famílias, professores e equipas ligadas ao percurso do aluno.'],
-              ['Comunicação', 'Informação contextual para cada perfil da comunidade.'],
-              ['Gestão', 'Processos escolares organizados numa experiência integrada.'],
-            ].map(([title, copy]) => (
-              <div key={title} className="bg-primary px-6 py-8 md:px-8">
-                <p className="font-heading text-lg font-bold">{title}</p>
-                <p className="mt-2 text-sm leading-6 text-primary-foreground/70">{copy}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="escola" className="px-5 py-20 md:px-8 md:py-28">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid items-center gap-12 lg:grid-cols-[0.85fr,1.15fr]">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">A nossa escola</p>
-                <h2 className="mt-3 max-w-xl font-heading text-4xl font-bold tracking-tight md:text-5xl">O espaço físico e o portal contam a mesma história.</h2>
-                <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground">
-                  Esta apresentação parte da identidade e dos espaços reais do Colégio Deus Connosco. A tecnologia aparece como extensão da experiência escolar — não como substituição da escola.
+                <h1 className="mt-7 font-display text-[clamp(3.4rem,6.7vw,7.7rem)] font-normal leading-[0.9] tracking-[-0.05em] text-primary">
+                  A escola
+                  <span className="block">começa aqui.</span>
+                </h1>
+                <p className="mt-7 max-w-lg text-base leading-7 text-muted-foreground md:text-lg md:leading-8">
+                  Conheça o ambiente do Colégio Deus Connosco e aceda ao portal que reúne as principais rotinas académicas, administrativas e de acompanhamento.
                 </p>
-                <div className="mt-8 grid gap-5 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-border bg-card p-5">
-                    <HeartHandshake className="h-6 w-6 text-primary" />
-                    <h3 className="mt-4 font-heading font-bold">Comunidade próxima</h3>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">Perfis diferentes partilham informação e acompanham o que importa.</p>
-                  </div>
-                  <div className="rounded-2xl border border-border bg-card p-5">
-                    <Laptop className="h-6 w-6 text-primary" />
-                    <h3 className="mt-4 font-heading font-bold">Experiência digital</h3>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">Um portal único organiza as rotinas académicas, financeiras e administrativas.</p>
-                  </div>
+
+                <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Link
+                    to="/login"
+                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[hsl(var(--brand-orange))] px-6 py-3 text-sm font-extrabold text-primary shadow-lg shadow-orange-950/10 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4"
+                  >
+                    Entrar no portal <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <a
+                    href="#escola"
+                    className="inline-flex min-h-12 items-center justify-center gap-2 border-b border-primary/25 px-2 py-3 text-sm font-bold text-primary transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4"
+                  >
+                    Conhecer a escola <ArrowRight className="h-4 w-4" />
+                  </a>
                 </div>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <figure className="overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-lg sm:row-span-2">
-                  <img src={facilityClassrooms} alt="Salas de aula do Colégio Deus Connosco" className="h-full min-h-[420px] w-full object-cover" />
-                </figure>
-                <figure className="overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-lg">
-                  <img src={facilityComputerLab} alt="Laboratório de informática do Colégio Deus Connosco" className="aspect-[4/3] h-full w-full object-cover" />
-                </figure>
-                <div className="flex min-h-[200px] flex-col justify-between rounded-[1.75rem] bg-secondary p-6">
-                  <SchoolBrand imageClassName="h-16" />
-                  <p className="font-heading text-xl font-bold text-primary">Identidade, espaço e tecnologia numa apresentação coerente.</p>
+
+              <div className="mt-14 hidden items-center gap-4 text-[10px] font-bold uppercase tracking-[0.23em] text-muted-foreground md:flex">
+                <span>Aprender</span><span className="h-px w-5 bg-border" /><span>Acompanhar</span><span className="h-px w-5 bg-border" /><span>Conectar</span>
+              </div>
+            </motion.div>
+
+            <div className="relative min-h-[54vh] overflow-hidden lg:min-h-full">
+              <motion.img
+                style={{ scale: heroScale, y: heroY }}
+                src={campusHero}
+                alt="Campus do Colégio Deus Connosco"
+                fetchPriority="high"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#fbf8f2] via-transparent to-transparent opacity-20 lg:opacity-60" />
+              <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-primary/50 to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4 text-white md:bottom-8 md:left-8 md:right-8">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/70">O espaço escolar</p>
+                  <p className="mt-1 max-w-sm font-display text-2xl leading-tight md:text-3xl">Um ambiente real. Uma experiência digital contínua.</p>
                 </div>
+                <span className="hidden h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black/10 text-xs font-bold backdrop-blur md:flex">01</span>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="espacos" className="border-y border-border bg-secondary/40 px-5 py-20 md:px-8 md:py-24">
-          <div className="mx-auto max-w-7xl">
-            <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Espaços reais</p>
-                <h2 className="mt-3 font-heading text-4xl font-bold tracking-tight md:text-5xl">O Colégio Deus Connosco em foco.</h2>
+        <section id="escola" className="bg-primary text-white">
+          <div className="mx-auto max-w-[1480px] px-6 py-20 md:px-10 md:py-28 lg:px-12">
+            <div className="grid gap-12 lg:grid-cols-[0.72fr,1.28fr] lg:items-start">
+              <div className="lg:sticky lg:top-28">
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">A escola por dentro</p>
+                <h2 className="mt-5 max-w-lg font-display text-5xl leading-[0.95] tracking-[-0.04em] md:text-6xl">
+                  O espaço também ensina.
+                </h2>
+                <p className="mt-6 max-w-md text-base leading-7 text-white/70">
+                  A fotografia do Colégio deixa de ser decoração e passa a orientar a narrativa: campus, salas e tecnologia aparecem como partes do mesmo percurso escolar.
+                </p>
               </div>
-              <p className="max-w-md text-sm leading-6 text-muted-foreground">Fotografia institucional usada como parte da narrativa, sem recorrer a imagens genéricas de outras escolas.</p>
-            </div>
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {facilities.map((facility) => (
-                <figure key={facility.title} className="group overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-sm">
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <img src={facility.image} alt={facility.alt} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
-                  </div>
-                  <figcaption className="flex items-center justify-between px-5 py-4">
-                    <span className="font-heading font-bold">{facility.title}</span>
-                    <span className="h-2 w-2 rounded-full bg-accent" />
+
+              <div className="space-y-5">
+                <figure className="relative overflow-hidden rounded-[1.8rem] bg-white/5">
+                  <img src={campusCourtyard} alt="Pátio do Colégio Deus Connosco" className="aspect-[16/9] w-full object-cover" loading="lazy" />
+                  <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/70 to-transparent p-6 pt-20">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-orange-200">01 · Campus</p>
+                      <p className="mt-2 font-display text-2xl">Espaço para aprender e acompanhar.</p>
+                    </div>
                   </figcaption>
                 </figure>
+
+                <div className="grid gap-5 md:grid-cols-2">
+                  <figure className="overflow-hidden rounded-[1.8rem] bg-white/5">
+                    <img src={facilityClassrooms} alt="Salas do Colégio Deus Connosco" className="aspect-[4/3] w-full object-cover" loading="lazy" />
+                    <figcaption className="p-5">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-200">02 · Sala</p>
+                      <p className="mt-2 font-heading text-lg font-bold">Aprendizagem em contexto.</p>
+                    </figcaption>
+                  </figure>
+
+                  <figure className="overflow-hidden rounded-[1.8rem] bg-white/5">
+                    <img src={facilityComputerLab} alt="Espaço de informática do Colégio Deus Connosco" className="aspect-[4/3] w-full object-cover" loading="lazy" />
+                    <figcaption className="p-5">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-200">03 · Tecnologia</p>
+                      <p className="mt-2 font-heading text-lg font-bold">Ferramentas ligadas ao percurso escolar.</p>
+                    </figcaption>
+                  </figure>
+                </div>
+
+                <figure className="relative overflow-hidden rounded-[1.8rem] bg-white/5">
+                  <img src={campusSports} alt="Área desportiva do Colégio Deus Connosco" className="aspect-[16/8] w-full object-cover" loading="lazy" />
+                  <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-6 pt-16">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-200">04 · Vida escolar</p>
+                    <p className="mt-2 max-w-lg font-display text-2xl">Uma instituição é mais do que uma interface.</p>
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="experiencia" className="bg-[#fbf8f2] px-6 py-20 md:px-10 md:py-28 lg:px-12">
+          <div className="mx-auto max-w-[1480px]">
+            <div className="grid gap-10 border-y border-border py-10 md:grid-cols-3 md:gap-0 md:py-14">
+              {ecosystem.map((item, index) => (
+                <div key={item.title} className={`md:px-8 ${index > 0 ? 'md:border-l md:border-border' : ''}`}>
+                  <div className="flex items-center gap-3">
+                    <item.icon className="h-5 w-5 text-[hsl(var(--brand-orange))]" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">0{index + 1}</span>
+                  </div>
+                  <h2 className="mt-7 font-display text-3xl text-primary md:text-4xl">{item.title}</h2>
+                  <p className="mt-4 max-w-sm text-sm leading-6 text-muted-foreground">{item.copy}</p>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="portal" className="bg-primary px-5 py-20 text-primary-foreground md:px-8 md:py-28">
-          <div className="mx-auto max-w-7xl">
-            <div className="grid gap-12 lg:grid-cols-[0.75fr,1.25fr]">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent">Portal escolar</p>
-                <h2 className="mt-3 font-heading text-4xl font-bold tracking-tight md:text-5xl">Uma experiência para cada responsabilidade.</h2>
-                <p className="mt-5 text-base leading-7 text-primary-foreground/70">A demonstração permite entrar por função e percorrer fluxos reais do produto, com dashboards, páginas de detalhe e dados de apresentação.</p>
-                <div className="mt-8 flex flex-wrap gap-2">
-                  {profiles.map((profile) => (
-                    <span key={profile.label} className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold">
-                      <profile.icon className="h-4 w-4 text-accent" />{profile.label}
-                    </span>
-                  ))}
+        <section id="portal" className="relative overflow-hidden bg-primary px-6 py-20 text-white md:px-10 md:py-28 lg:px-12">
+          <div className="pointer-events-none absolute -right-28 -top-20 h-80 w-80 rotate-12 border-[32px] border-orange-400/10" />
+          <div className="mx-auto max-w-[1480px]">
+            <div className="grid gap-12 lg:grid-cols-[0.7fr,1.3fr] lg:items-start">
+              <div className="lg:sticky lg:top-28">
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">O portal</p>
+                <h2 className="mt-5 max-w-xl font-display text-5xl leading-[0.95] tracking-[-0.04em] md:text-6xl">
+                  O mesmo colégio. Uma visão diferente para cada função.
+                </h2>
+                <p className="mt-6 max-w-lg text-base leading-7 text-white/70">
+                  Cada área apresenta somente o que faz sentido para a responsabilidade de quem entrou, mantendo o percurso académico e operacional ligado.
+                </p>
+
+                <div className="mt-8 flex flex-wrap gap-2" role="tablist" aria-label="Perfis do portal">
+                  {roleExperiences.map((role, index) => {
+                    const Icon = role.icon;
+                    const selected = activeRole === index;
+                    return (
+                      <button
+                        key={role.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={selected}
+                        onClick={() => setActiveRole(index)}
+                        className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 ${
+                          selected
+                            ? 'border-orange-300 bg-[hsl(var(--brand-orange))] text-primary'
+                            : 'border-white/20 bg-white/5 text-white/70 hover:border-white/40 hover:text-white'
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" /> {role.label}
+                      </button>
+                    );
+                  })}
                 </div>
-                <Link to="/login" className="mt-9 inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-bold text-accent-foreground shadow-lg transition hover:brightness-105">
-                  Explorar os 7 perfis <ArrowRight className="h-4 w-4" />
+
+                <Link
+                  to="/login"
+                  className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-extrabold text-primary transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-primary"
+                >
+                  Entrar no portal <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {portalAreas.map((area) => (
-                  <div key={area.title} className="rounded-2xl border border-white/15 bg-white/10 p-5">
-                    <area.icon className="h-5 w-5 text-accent" />
-                    <h3 className="mt-4 font-heading text-lg font-bold">{area.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-primary-foreground/70">{area.copy}</p>
-                  </div>
-                ))}
-              </div>
+
+              <PortalPreview activeIndex={activeRole} />
             </div>
           </div>
         </section>
 
-        <section className="px-5 py-20 md:px-8 md:py-24">
-          <div className="mx-auto grid max-w-7xl overflow-hidden rounded-[2rem] border border-border bg-card shadow-xl lg:grid-cols-2">
-            <div className="relative min-h-[340px]">
-              <img src={campusMain} alt="Colégio Deus Connosco" className="absolute inset-0 h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-primary/40" />
-            </div>
-            <div className="flex flex-col justify-center p-8 md:p-12">
-              <SchoolBrand imageClassName="h-16 md:h-20" />
-              <h2 className="mt-8 font-heading text-3xl font-bold tracking-tight md:text-4xl">Conheça a experiência digital do Colégio Deus Connosco.</h2>
-              <p className="mt-4 text-sm leading-6 text-muted-foreground">Entre na demonstração para navegar como aluno, encarregado, professor, pedagogia, direcção, secretaria ou finanças.</p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link to="/login" className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground">Aceder ao portal <ArrowRight className="h-4 w-4" /></Link>
-                <Link to="/apply" className="inline-flex items-center rounded-xl border border-border px-6 py-3 text-sm font-semibold hover:bg-muted">Candidatura</Link>
+        <section className="bg-[#fbf8f2] px-6 py-20 md:px-10 md:py-28 lg:px-12">
+          <div className="mx-auto max-w-[1480px] overflow-hidden rounded-[2rem] bg-[#0b2e59] text-white">
+            <div className="grid lg:grid-cols-[1.1fr,0.9fr]">
+              <div className="flex flex-col justify-center p-8 md:p-12 lg:p-16">
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-orange-300">Continuidade digital</p>
+                <h2 className="mt-5 max-w-2xl font-display text-4xl leading-[1.02] md:text-6xl">
+                  Da escola física ao portal, a identidade permanece a mesma.
+                </h2>
+                <p className="mt-6 max-w-xl text-base leading-7 text-white/70">
+                  Entre para percorrer a experiência do Colégio Deus Connosco através dos diferentes perfis e módulos já disponíveis no produto.
+                </p>
+                <div className="mt-8">
+                  <Link
+                    to="/login"
+                    className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[hsl(var(--brand-orange))] px-6 py-3 text-sm font-extrabold text-primary transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-4 focus-visible:ring-offset-primary"
+                  >
+                    Entrar no portal <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="relative min-h-[360px] overflow-hidden lg:min-h-[520px]">
+                <img src={campusCourtyard} alt="Campus do Colégio Deus Connosco" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0b2e59] via-[#0b2e59]/10 to-transparent" />
+                <div className="absolute bottom-8 right-8 hidden border-r-4 border-[hsl(var(--brand-orange))] pr-5 text-right lg:block">
+                  <p className="font-display text-3xl">Colégio</p>
+                  <p className="font-display text-3xl">Deus Connosco</p>
+                </div>
               </div>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-primary/20 bg-primary px-5 py-10 text-primary-foreground md:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <SchoolBrand imageClassName="h-14" className="rounded-xl bg-white p-2" />
-          <div className="flex flex-wrap gap-5 text-xs text-primary-foreground/70">
-            <a href="#escola" className="hover:text-white">A Escola</a>
-            <a href="#espacos" className="hover:text-white">Espaços</a>
-            <Link to="/login" className="hover:text-white">Portal</Link>
-            <Link to="/apply" className="hover:text-white">Candidatura</Link>
+      <footer className="border-t border-border bg-[#fbf8f2] px-6 py-10 md:px-10 lg:px-12">
+        <div className="mx-auto flex max-w-[1480px] flex-col gap-8 md:flex-row md:items-center md:justify-between">
+          <SchoolBrand imageClassName="h-[72px] w-auto" />
+          <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-muted-foreground">
+            <a href="#escola" className="hover:text-primary">A Escola</a>
+            <a href="#experiencia" className="hover:text-primary">Experiência</a>
+            <a href="#portal" className="hover:text-primary">Portal</a>
+            <Link to="/login" className="hover:text-primary">Entrar</Link>
           </div>
         </div>
       </footer>
