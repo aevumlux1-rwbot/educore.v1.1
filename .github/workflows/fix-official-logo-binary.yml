@@ -1,0 +1,37 @@
+name: Fix official school logo binary
+
+on:
+  push:
+    branches:
+      - presentation/colegio-deus-connosco
+
+permissions:
+  contents: write
+
+jobs:
+  fix-logo:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: presentation/colegio-deus-connosco
+      - name: Decode validated logo
+        run: |
+          set -euo pipefail
+          test -s frontend/src/assets/brand/logo-binary-base64.txt
+          base64 -d frontend/src/assets/brand/logo-binary-base64.txt > frontend/src/assets/brand/colegio-deus-connosco-logo.png
+          cp frontend/src/assets/brand/colegio-deus-connosco-logo.png frontend/src/assets/brand/colegio-deus-connosco-mark.png
+          cp frontend/src/assets/brand/colegio-deus-connosco-logo.png frontend/public/favicon.png
+          file frontend/src/assets/brand/colegio-deus-connosco-logo.png | grep -q 'PNG image data'
+          rm -f frontend/src/assets/brand/logo-binary-base64.txt
+          rm -f frontend/src/assets/brand/colegio-deus-connosco-logo-fixed.png
+          rm -f frontend/src/assets/brand/README.logo.txt
+          rm -f .github/workflows/fix-official-logo-binary.yml
+      - name: Commit binary assets
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Fix official Colégio Deus Connosco logo binary assets'
+          git push origin HEAD:presentation/colegio-deus-connosco
