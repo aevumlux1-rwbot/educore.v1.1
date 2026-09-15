@@ -23,19 +23,25 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
   const [selectedRole, setSelectedRole] = useState<UserRole>('student');
+  const [pendingRole, setPendingRole] = useState<UserRole | null>(null);
   const { login, isAuthenticated, role } = useAuth();
   const navigate = useNavigate();
 
+  // Important for the presentation flow: opening /login must always show the
+  // access-role chooser, even when a previous demo session exists. We only
+  // enter a dashboard after the visitor explicitly submits a chosen role.
   useEffect(() => {
-    if (isAuthenticated && role) {
-      navigate(ROLE_HOME[role], { replace: true });
+    if (pendingRole && isAuthenticated && role === pendingRole) {
+      navigate(ROLE_HOME[pendingRole], { replace: true });
+      setPendingRole(null);
     }
-  }, [isAuthenticated, role, navigate]);
+  }, [pendingRole, isAuthenticated, role, navigate]);
 
   const current = DEMO_ROLES.find(r => r.role === selectedRole)!;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setPendingRole(selectedRole);
     login(email, password, selectedRole, remember);
   };
 
@@ -120,7 +126,7 @@ export default function LoginPage() {
             </div>
 
             <p className="rounded-xl bg-secondary px-3.5 py-3 text-xs leading-5 text-muted-foreground">
-              Para esta versão de apresentação, basta escolher um perfil e entrar. Não são necessárias credenciais reais.
+              Para esta versão de apresentação, escolha primeiro o perfil de acesso. Não são necessárias credenciais reais.
             </p>
 
             <div className="flex items-center justify-between text-xs">
@@ -133,9 +139,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-deep active:scale-[0.98]"
+              disabled={pendingRole !== null}
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-deep active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
             >
-              Entrar como {current.label}
+              {pendingRole ? 'A entrar…' : `Entrar como ${current.label}`}
             </button>
           </form>
         </div>
