@@ -1,1 +1,0 @@
-Temporary note: logo binary validation in progress.
