@@ -38,16 +38,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setRole(parsed.role);
         }
       }
-    } catch {/* noop */}
+    } catch {
+      try { localStorage.removeItem(STORAGE_KEY); } catch {/* noop */}
+    }
   }, []);
 
   const login = useCallback((email: string, _password: string, selectedRole: UserRole, remember = false) => {
-    const mockUser = { ...MOCK_USERS[selectedRole], email: email || MOCK_USERS[selectedRole].email };
+    const mockUser = { ...MOCK_USERS[selectedRole], email: email.trim() || MOCK_USERS[selectedRole].email };
     setUser(mockUser);
     setRole(selectedRole);
-    if (remember) {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: mockUser, role: selectedRole })); } catch {/* noop */}
-    }
+
+    try {
+      if (remember) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: mockUser, role: selectedRole }));
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch {/* noop */}
   }, []);
 
   const logout = useCallback(() => {
