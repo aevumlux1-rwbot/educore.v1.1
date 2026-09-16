@@ -3,59 +3,99 @@
 ## Alvo
 
 ```text
-LANDING/PUBLIC
-    |
-AUTH
-    |
-REACT ERP FRONTEND
-    |
-API CLIENT / QUERY LAYER
-    |
-BACKEND API
- ├ IAM/RBAC
+                 EDUCORE CONTROL PLANE
+        tenants / plans / modules / provisioning
+                         |
+                         v
+PUBLIC TENANT EXPERIENCE / LOGIN
+                         |
+                  AUTH + TENANT RESOLUTION
+                         |
+                 REACT ERP FRONTEND
+                         |
+              API CLIENT / QUERY LAYER
+                         |
+                    BACKEND API
+ ├ Platform / Tenant Management
+ ├ IAM / RBAC / Memberships
  ├ Academic
- ├ Students/Enrollment
+ ├ Students / Enrollment
  ├ Finance
  ├ Documents
  ├ Communication
  ├ Reporting
  └ Audit
-    |
-POSTGRESQL + OBJECT STORAGE
-    |
-INTEGRATIONS
+                         |
+         POSTGRESQL + OBJECT STORAGE
+                         |
+                    INTEGRATIONS
 ```
 
-## Landing
-Marketing/institucional. Não contém regras do ERP.
+## Platform boundary
+
+EduCore owns tenant lifecycle, module catalog, entitlements, platform administration, usage/health and future SaaS billing. Platform administration is not the same as a school Direcção account.
+
+## Tenant boundary
+
+Each institution is an isolation boundary for identity memberships, configuration, branding, ERP data and integrations.
+
+The Colégio Deus Connosco is a tenant configuration, not a fork of the product.
+
+## Landing / Public
+
+The public experience can be tenant-branded. It contains no ERP authority. Custom tenant domain/subdomain may resolve tenant context before login.
 
 ## Frontend interno
-Responsável por UX, forms, tables, cache/query, visualização, chamadas API e estados de interface.
 
-Não é autoridade para saldo financeiro, cálculo oficial de nota, autorização, auditoria, matrícula ou reconciliação.
+Responsible for UX, forms, tables, cache/query, visualisation, API calls and interface states.
+
+It should become tenant-aware through resolved tenant configuration/context, but it is not the authority for tenant isolation or permission enforcement.
+
+It is not authority for balances, official grade calculations, authorization, audit, enrollment decisions or payment reconciliation.
 
 ## Backend
-Autoridade sobre regras transacionais, autorização, auditoria e consistência.
+
+Authority for tenant resolution, authorization, entitlements, transactional rules, audit and consistency.
+
+Every request touching tenant-owned data must carry a trusted tenant context derived from authenticated membership/domain/session rules, not merely a user-provided ID.
 
 ## Database
-Preserva integridade e histórico. O frontend nunca comunica diretamente com a DB.
+
+Preserves integrity, isolation and history. Tenant-owned rows are tenant-scoped. The frontend never communicates directly with the DB.
+
+## Configuration boundary
+
+Use configuration instead of client forks:
+
+```text
+EduCore defaults
+→ plan/module entitlements
+→ tenant configuration
+→ tenant branding/theme
+→ user role/permissions
+→ UI and workflow availability
+```
 
 ## Estratégia de migração
 
 ```text
-mock existente
+hard-coded tenant/mock
 → interface/contract
+→ tenant context
 → API client
-→ backend endpoint
-→ persistência
-→ testes
-→ remover mock do fluxo
+→ tenant-aware backend endpoint
+→ tenant-scoped persistence
+→ tests/isolation checks
+→ remove hard-coded/mock path
 ```
 
 ## Evolução recomendada no frontend
 
 ```text
 src/
+  platform/
+    tenant/
+    entitlements/
   api/
     client.ts
     contracts/
