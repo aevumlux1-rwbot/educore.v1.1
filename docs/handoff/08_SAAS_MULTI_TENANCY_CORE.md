@@ -26,12 +26,14 @@ Owned by EduCore operations:
 - platform-level feature flags;
 - usage/quotas;
 - platform audit/observability;
-- deployment/versioning.
+- deployment/versioning;
+- EduCore corporate/marketing website.
 
 ### Tenant scope
 Owned by a school/institution:
 - institution profile;
 - branding;
+- **public landing/site experience**;
 - campuses;
 - academic years and terms;
 - students/guardians/staff;
@@ -106,6 +108,17 @@ identity
   primary/secondary/accent colors
   locale/timezone/currency
 
+public_site
+  enabled
+  domain/subdomain
+  theme
+  navigation
+  hero/media
+  section configuration
+  public pages
+  CTA links
+  SEO metadata
+
 academic
   active academic year
   terms/semesters
@@ -124,7 +137,6 @@ experience
   enabled roles
   navigation policy
   feature flags
-  domain/subdomain
 
 integrations
   payment provider config reference
@@ -149,9 +161,23 @@ EduCore default design tokens
 
 Brand overrides must not replace semantic colors such as error/success/warning indiscriminately.
 
+### Public landing belongs to branding
+
+The tenant landing is part of the tenant's **branding/public-experience layer**, not an ERP business module.
+
+```text
+EduCore corporate site
+≠ tenant public landing
+≠ tenant authenticated ERP portal
+```
+
+The current Colégio Deus Connosco landing is the reference implementation for this layer. The target is to migrate its hard-coded school identity/content into tenant configuration progressively.
+
+V1 should favor controlled public-page templates/sections over a fully open website builder. A tenant may enable/disable its public site, use a custom domain and configure approved content/media without forking the codebase.
+
 ## Module catalog / entitlements
 
-EduCore should be modular. A school may not license or use every module.
+EduCore should be modular. A school may not license or use every ERP module.
 
 Potential module keys:
 - student_registry;
@@ -172,6 +198,8 @@ Potential module keys:
 
 The frontend may hide unavailable modules for UX, but the backend must enforce entitlements.
 
+The public landing itself should not be confused with the operational module catalog; it is a tenant branding/public-experience capability.
+
 ## Tenant provisioning
 
 V1 provisioning target:
@@ -184,6 +212,7 @@ create tenant
 → create first tenant admin
 → create academic-year baseline
 → upload branding
+→ configure optional public site
 → verify isolation
 → activate tenant
 ```
@@ -221,6 +250,7 @@ Do not mix these ledgers or permissions.
 Phase 1:
 - introduce `TenantContext` in frontend;
 - move Colégio Deus Connosco identity into tenant config;
+- move public landing branding/content toward tenant config;
 - keep existing routes stable.
 
 Phase 2:
@@ -244,6 +274,8 @@ Phase 4:
 - no database query without tenant scope for tenant data;
 - no frontend-only tenant isolation;
 - no tenant branding hard-coded into core components;
+- no separate landing application per tenant;
+- no ERP business rules inside public landing pages;
 - no mixing school finance with EduCore subscription billing;
 - no support impersonation without audit and explicit controls;
 - no custom-client feature that bypasses the module/config architecture without an ADR.
