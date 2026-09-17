@@ -6,8 +6,16 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { AppRouter } from "@/app/router/appRouter";
+import PlatformAdminPage from "@/pages/platform/PlatformAdminPage";
 
 const queryClient = new QueryClient();
+
+function RoutedExperience() {
+  if (window.location.pathname.startsWith('/platform')) {
+    return <PlatformAdminPage />;
+  }
+  return <AppRouter />;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -17,7 +25,7 @@ const App = () => (
       <BrowserRouter>
         <TenantProvider>
           <AuthProvider>
-            <AppRouter />
+            <RoutedExperience />
           </AuthProvider>
         </TenantProvider>
       </BrowserRouter>
