@@ -12,7 +12,34 @@ EduCore
       └─ Commerce / Store
 ```
 
-The first use case is a school store for uniforms, books, school supplies and other products/services sold by the institution.
+The first use case is a school store for uniforms, permitted school supplies, merchandise, events/services and other products legally allowed for the institution and jurisdiction.
+
+## Regulatory rule — Mozambique / school books
+
+EduCore must **not** assume that school textbooks are freely sellable merchandise.
+
+For Mozambique, official education policy and MEC operations treat primary-school textbooks as centrally managed/distributed learning materials and primary education policy includes free textbooks. MEC also makes primary textbooks available through its official channels.
+
+Therefore the product rule is:
+
+```text
+official_primary_textbook
++ jurisdiction = MZ
+→ sale disabled by default
+→ explicit compliance/legal policy required before enabling
+```
+
+Do not list official primary-school textbooks as ordinary store products in the Mozambique tenant template.
+
+This rule must be implemented through product eligibility/compliance policy, not hard-coded UI text only.
+
+Potentially sellable book-like items must be classified separately, for example:
+- non-official supplementary reading;
+- exercise/support materials where permitted;
+- books outside the regulated/free textbook programme;
+- institution-authored optional materials where legally permitted.
+
+Before enabling any such category in production, confirm the applicable Mozambican education/commercial rules and the institution's authority to sell it.
 
 ## Surfaces
 
@@ -62,6 +89,8 @@ Proposed initial model:
 products
 product_categories
 product_variants
+product_compliance_profiles
+product_eligibility_rules
 inventory_items
 inventory_movements
 carts
@@ -80,11 +109,14 @@ Tenant scope is mandatory for all tenant-owned commerce data.
 
 A product can represent:
 - uniform piece;
-- school book;
-- stationery/material;
+- permitted stationery/material;
 - event ticket;
 - activity/service;
-- other school merchandise.
+- school merchandise;
+- permitted supplementary publication;
+- other legally permitted school products.
+
+Do not use a generic `school_book` category for Mozambique primary official textbooks.
 
 Variants support cases such as:
 
@@ -96,6 +128,31 @@ Uniforme Escolar
   ├─ Calça / 10
   └─ Calça / 12
 ```
+
+## Product compliance / eligibility
+
+Commerce must support jurisdiction-aware product restrictions.
+
+Example policy inputs:
+
+```text
+jurisdiction
+education_level
+product_type
+official_textbook_flag
+age_group
+tenant_authorisation
+requires_compliance_review
+```
+
+Example evaluation:
+
+```text
+canPublishProduct(product, tenant, jurisdiction)
+→ allowed / blocked / requires_review
+```
+
+The backend is authoritative. Hiding a product in the frontend is not sufficient compliance control.
 
 ## Order lifecycle
 
@@ -162,6 +219,7 @@ commerce.orderNumberPrefix
 commerce.taxPolicyReference
 commerce.receiptTemplate
 commerce.paymentMethods
+commerce.compliancePolicyReference
 ```
 
 ## Module entitlement
@@ -188,7 +246,8 @@ The frontend can hide unavailable capabilities, but the backend must enforce ent
 The first version should not be a visual-only shop. Minimum real vertical slice:
 
 ```text
-Create product
+Create permitted product
+→ compliance eligibility check
 → define variant/price/stock
 → publish product
 → add to cart
@@ -210,4 +269,6 @@ Mocks may seed initial products only. Runtime state must go through domain servi
 - no mixing tuition ledger with commerce inventory/order state;
 - no destructive deletion of financially relevant order history;
 - no stock updates without auditable inventory movement;
-- no payment success based only on client-side state in production.
+- no payment success based only on client-side state in production;
+- no assumption that an educational product is legally sellable merely because a tenant created it;
+- no official Mozambique primary-school textbook sales enabled by default.
