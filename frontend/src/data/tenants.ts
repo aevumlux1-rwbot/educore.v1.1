@@ -1,5 +1,6 @@
 import schoolLogo from '@/assets/brand/colegio-deus-connosco-logo.png';
 import schoolMark from '@/assets/brand/colegio-deus-connosco-mark.png';
+import { PASCOA_LOGO } from '@/tenants/colegio-pascoa/media/pascoa_logo';
 import type { TenantConfig, TenantModule } from '@/types/tenant';
 import type { UserRole } from '@/types/roles';
 
@@ -75,9 +76,9 @@ export const DEFAULT_TENANTS: TenantConfig[] = [
       displayName: 'Colégio Páscoa',
       shortName: 'Páscoa',
       descriptor: 'Colégio',
-      logo: '/tenants/colegio-pascoa/pascoa-logo.jpg',
-      mark: '/tenants/colegio-pascoa/pascoa-logo.jpg',
-      favicon: '/tenants/colegio-pascoa/pascoa-logo.jpg',
+      logo: PASCOA_LOGO,
+      mark: PASCOA_LOGO,
+      favicon: PASCOA_LOGO,
       primaryHsl: '158 100% 30%',
       accentHsl: '355 100% 45%',
       sidebarHsl: '158 63% 20%',
