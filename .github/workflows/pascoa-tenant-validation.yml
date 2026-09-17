@@ -29,3 +29,8 @@ jobs:
           grep -q "tenant-pascoa-002" src/data/tenants.ts
           grep -q "Educar para Transformar" src/pages/public/PascoaLanding.tsx
           grep -q "colegio-pascoa" src/pages/public/TenantLandingEntry.tsx
+          grep -q "PascoaLogin" src/pages/auth/TenantLoginEntry.tsx
+          grep -q "colegio-pascoa" src/pages/auth/TenantLoginEntry.tsx
+          ! grep -q "2025" src/pages/public/PascoaLanding.tsx
+          ! grep -q "2026" src/pages/public/PascoaLanding.tsx
+          ! grep -q "500 Alunos" src/pages/public/PascoaLanding.tsx
