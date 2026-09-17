@@ -18,7 +18,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Materialize first intact copy of every tenant asset
+      - name: Recover intact tenant media from repository history
         shell: bash
         run: |
           set -euo pipefail
@@ -33,18 +33,6 @@ jobs:
           public = root / 'public/tenants/colegio-pascoa'
           public.mkdir(parents=True, exist_ok=True)
 
-          candidate_refs = [
-              'origin/tenant/colegio-pascoa-assets',
-              'origin/tenant/colegio-pascoa-assets-staging',
-              'origin/tenant/colegio-pascoa-assets-temp',
-              'origin/tenant/colegio-pascoa-binaries',
-              'origin/tenant/colegio-pascoa-final',
-              'origin/tenant/colegio-pascoa-finalize',
-              'origin/tenant/colegio-pascoa-live',
-              'origin/tenant/colegio-pascoa-ready',
-              'origin/presentation/colegio-deus-connosco',
-          ]
-
           specs = [
               ('logo', 'PASCOA_LOGO', public / 'pascoa-logo.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-logo.jpg', media / 'pascoa_logo.ts'),
               ('hero', 'PASCOA_HERO', public / 'pascoa-hero.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-hero.jpg', media / 'pascoa_hero.ts'),
@@ -53,9 +41,23 @@ jobs:
               ('video', 'PASCOA_VIDEO', public / 'pascoa-learning-preview.mp4', 'video/mp4', '/tenants/colegio-pascoa/pascoa-learning-preview.mp4', media / 'pascoa_video.ts'),
           ]
 
-          def read_at_ref(ref: str, asset: str):
-              path = f'frontend/src/tenants/colegio-pascoa/media/pascoa_{asset}.ts'
-              result = subprocess.run(['git', 'show', f'{ref}:{path}'], text=True, capture_output=True)
+          def run(*args):
+              return subprocess.run(args, text=True, capture_output=True)
+
+          def commits_for(path: str):
+              result = run('git', 'log', '--all', '--format=%H', '--', path)
+              if result.returncode != 0:
+                  return []
+              seen = set()
+              commits = []
+              for sha in result.stdout.splitlines():
+                  if sha and sha not in seen:
+                      seen.add(sha)
+                      commits.append(sha)
+              return commits
+
+          def read_at_commit(sha: str, path: str):
+              result = run('git', 'show', f'{sha}:{path}')
               return result.stdout if result.returncode == 0 else None
 
           def extract(text: str, expected_mime: str):
@@ -78,32 +80,35 @@ jobs:
               return data, 'ok'
 
           for asset, const_name, destination, expected_mime, public_path, module_path in specs:
+              repo_path = f'frontend/src/tenants/colegio-pascoa/media/pascoa_{asset}.ts'
               chosen = None
               reasons = []
-              for ref in candidate_refs:
-                  text = read_at_ref(ref, asset)
+              commits = commits_for(repo_path)
+              print(f'{const_name}: scanning {len(commits)} historical versions')
+              for sha in commits:
+                  text = read_at_commit(sha, repo_path)
                   if text is None:
-                      reasons.append(f'{ref}:missing')
                       continue
                   data, reason = extract(text, expected_mime)
-                  reasons.append(f'{ref}:{reason}')
+                  reasons.append(f'{sha[:10]}:{reason}')
                   if data is not None:
-                      chosen = (ref, data)
+                      chosen = (sha, data)
                       break
+
               if chosen is None:
                   print(f'No intact source for {const_name}:')
                   for reason in reasons:
                       print('  ' + reason)
                   raise SystemExit(1)
 
-              ref, data = chosen
+              sha, data = chosen
               destination.write_bytes(data)
               module_path.write_text(
                   "// Presentation tenant asset path. In SaaS production this resolves from tenant object storage/CDN.\n"
                   f"export const {const_name} = '{public_path}';\n",
                   encoding='utf-8',
               )
-              print(f'{const_name}: {len(data)} bytes from {ref} -> {destination}')
+              print(f'{const_name}: {len(data)} bytes from commit {sha[:12]} -> {destination}')
           PY
 
       - name: Verify generated files
