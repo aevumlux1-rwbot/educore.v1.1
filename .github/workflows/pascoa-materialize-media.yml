@@ -33,7 +33,7 @@ jobs:
 
           python - <<'PY'
           from pathlib import Path
-          import base64, re
+          import base64, re, string
 
           root = Path('frontend')
           media = root / 'src/tenants/colegio-pascoa/media'
@@ -49,6 +49,8 @@ jobs:
               ('PASCOA_VIDEO', source / 'pascoa_video.ts', public / 'pascoa-learning-preview.mp4', 'video/mp4', '/tenants/colegio-pascoa/pascoa-learning-preview.mp4', media / 'pascoa_video.ts'),
           ]
 
+          allowed = set(string.ascii_letters + string.digits + '+/=')
+
           for const_name, source_file, destination, expected_mime, public_path, module_path in specs:
               text = source_file.read_text(encoding='utf-8')
               match = re.search(r"data:([^;]+);base64,([^'\"]+)", text, re.S)
@@ -58,6 +60,10 @@ jobs:
               if mime != expected_mime:
                   raise SystemExit(f'Unexpected MIME for {const_name}: {mime} != {expected_mime}')
               payload = re.sub(r'\s+', '', match.group(2))
+              bad = [(i, repr(ch)) for i, ch in enumerate(payload) if ch not in allowed]
+              if bad:
+                  print(f'{const_name} invalid base64 chars: {bad[:24]} total={len(bad)}')
+                  raise SystemExit(f'Invalid base64 source for {const_name}')
               data = base64.b64decode(payload, validate=True)
 
               if expected_mime == 'image/jpeg' and not data.startswith(b'\xff\xd8'):
