@@ -1,0 +1,107 @@
+name: Materialize Colégio Páscoa media
+
+on:
+  push:
+    branches:
+      - tenant/colegio-pascoa
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: ${{ !contains(github.event.head_commit.message, '[pascoa-media-materialized]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tenant branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch binary source branch
+        run: git fetch origin tenant/colegio-pascoa-binaries:refs/remotes/origin/tenant/colegio-pascoa-binaries
+
+      - name: Materialize tenant media
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p frontend/public/tenants/colegio-pascoa
+          git show origin/tenant/colegio-pascoa-binaries:frontend/src/tenants/colegio-pascoa/media/pascoa_logo.ts > /tmp/pascoa_logo_source.ts
+
+          python - <<'PY'
+          from pathlib import Path
+          import base64, re
+
+          root = Path('frontend')
+          media = root / 'src/tenants/colegio-pascoa/media'
+          public = root / 'public/tenants/colegio-pascoa'
+          public.mkdir(parents=True, exist_ok=True)
+
+          specs = [
+              ('PASCOA_LOGO', Path('/tmp/pascoa_logo_source.ts'), public / 'pascoa-logo.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-logo.jpg', media / 'pascoa_logo.ts'),
+              ('PASCOA_HERO', media / 'pascoa_hero.ts', public / 'pascoa-hero.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-hero.jpg', media / 'pascoa_hero.ts'),
+              ('PASCOA_COMMUNITY', media / 'pascoa_community.ts', public / 'pascoa-community.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-community.jpg', media / 'pascoa_community.ts'),
+              ('PASCOA_CAMPUS', media / 'pascoa_campus.ts', public / 'pascoa-campus.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-campus.jpg', media / 'pascoa_campus.ts'),
+              ('PASCOA_VIDEO', media / 'pascoa_video.ts', public / 'pascoa-learning-preview.mp4', 'video/mp4', '/tenants/colegio-pascoa/pascoa-learning-preview.mp4', media / 'pascoa_video.ts'),
+          ]
+
+          for const_name, source, destination, expected_mime, public_path, module_path in specs:
+              text = source.read_text(encoding='utf-8')
+              match = re.search(r"data:([^;]+);base64,([^'\"]+)", text, re.S)
+              if not match:
+                  raise SystemExit(f'No embedded base64 payload found for {const_name} in {source}')
+              mime = match.group(1)
+              if mime != expected_mime:
+                  raise SystemExit(f'Unexpected MIME for {const_name}: {mime} != {expected_mime}')
+              payload = re.sub(r'\s+', '', match.group(2))
+              data = base64.b64decode(payload, validate=True)
+
+              if expected_mime == 'image/jpeg' and not data.startswith(b'\xff\xd8'):
+                  raise SystemExit(f'{const_name} is not a valid JPEG payload')
+              if expected_mime == 'video/mp4' and b'ftyp' not in data[:32]:
+                  raise SystemExit(f'{const_name} is not a valid MP4 payload')
+
+              destination.write_bytes(data)
+              module_path.write_text(
+                  "// Presentation tenant asset path. In SaaS production this resolves from tenant object storage/CDN.\n"
+                  f"export const {const_name} = '{public_path}';\n",
+                  encoding='utf-8',
+              )
+              print(f'{const_name}: {len(data)} bytes -> {destination}')
+          PY
+
+      - name: Verify generated files
+        run: |
+          set -euo pipefail
+          file frontend/public/tenants/colegio-pascoa/*
+          test -s frontend/public/tenants/colegio-pascoa/pascoa-logo.jpg
+          test -s frontend/public/tenants/colegio-pascoa/pascoa-hero.jpg
+          test -s frontend/public/tenants/colegio-pascoa/pascoa-community.jpg
+          test -s frontend/public/tenants/colegio-pascoa/pascoa-campus.jpg
+          test -s frontend/public/tenants/colegio-pascoa/pascoa-learning-preview.mp4
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      - name: Test
+        working-directory: frontend
+        run: npm test
+
+      - name: Commit materialized media
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/tenants/colegio-pascoa frontend/src/tenants/colegio-pascoa/media
+          if git diff --cached --quiet; then
+            echo "No media changes to commit."
+            exit 0
+          fi
+          git commit -m "[pascoa-media-materialized] Serve Páscoa media as static tenant assets"
+          git push origin HEAD:tenant/colegio-pascoa
