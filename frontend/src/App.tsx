@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,16 +12,20 @@ import { isPathEnabledForTenant } from "@/platform/tenancy/entitlements";
 
 const queryClient = new QueryClient();
 
+function PoweredByEduCore() {
+  return <div className="pointer-events-none fixed bottom-2 right-3 z-[70] hidden rounded-full border border-border/70 bg-background/90 px-2.5 py-1 text-[10px] font-semibold text-muted-foreground shadow-sm backdrop-blur md:block">Powered by EduCore</div>;
+}
+
 function RoutedExperience() {
   const { activeTenant } = useTenant();
-  const pathname = window.location.pathname;
+  const { pathname } = useLocation();
 
   if (pathname.startsWith('/platform')) {
     return <PlatformAdminPage />;
   }
 
   if (pathname === '/login') {
-    return <TenantLoginEntry />;
+    return <><TenantLoginEntry /><PoweredByEduCore /></>;
   }
 
   if (pathname.startsWith('/app') && !isPathEnabledForTenant(pathname, activeTenant)) {
@@ -37,7 +41,7 @@ function RoutedExperience() {
     );
   }
 
-  return <AppRouter />;
+  return <><AppRouter /><PoweredByEduCore /></>;
 }
 
 const App = () => (
