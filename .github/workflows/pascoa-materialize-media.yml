@@ -18,66 +18,92 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fetch binary source branch
-        run: git fetch origin tenant/colegio-pascoa-binaries:refs/remotes/origin/tenant/colegio-pascoa-binaries
-
-      - name: Materialize tenant media from known-good source branch
+      - name: Materialize first intact copy of every tenant asset
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p frontend/public/tenants/colegio-pascoa /tmp/pascoa-media
-
-          for asset in logo hero community campus video; do
-            git show "origin/tenant/colegio-pascoa-binaries:frontend/src/tenants/colegio-pascoa/media/pascoa_${asset}.ts" > "/tmp/pascoa-media/pascoa_${asset}.ts"
-          done
+          mkdir -p frontend/public/tenants/colegio-pascoa
 
           python - <<'PY'
           from pathlib import Path
-          import base64, re, string
+          import base64, re, subprocess
 
           root = Path('frontend')
           media = root / 'src/tenants/colegio-pascoa/media'
           public = root / 'public/tenants/colegio-pascoa'
-          source = Path('/tmp/pascoa-media')
           public.mkdir(parents=True, exist_ok=True)
 
-          specs = [
-              ('PASCOA_LOGO', source / 'pascoa_logo.ts', public / 'pascoa-logo.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-logo.jpg', media / 'pascoa_logo.ts'),
-              ('PASCOA_HERO', source / 'pascoa_hero.ts', public / 'pascoa-hero.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-hero.jpg', media / 'pascoa_hero.ts'),
-              ('PASCOA_COMMUNITY', source / 'pascoa_community.ts', public / 'pascoa-community.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-community.jpg', media / 'pascoa_community.ts'),
-              ('PASCOA_CAMPUS', source / 'pascoa_campus.ts', public / 'pascoa-campus.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-campus.jpg', media / 'pascoa_campus.ts'),
-              ('PASCOA_VIDEO', source / 'pascoa_video.ts', public / 'pascoa-learning-preview.mp4', 'video/mp4', '/tenants/colegio-pascoa/pascoa-learning-preview.mp4', media / 'pascoa_video.ts'),
+          candidate_refs = [
+              'origin/tenant/colegio-pascoa-assets',
+              'origin/tenant/colegio-pascoa-assets-staging',
+              'origin/tenant/colegio-pascoa-assets-temp',
+              'origin/tenant/colegio-pascoa-binaries',
+              'origin/tenant/colegio-pascoa-final',
+              'origin/tenant/colegio-pascoa-finalize',
+              'origin/tenant/colegio-pascoa-live',
+              'origin/tenant/colegio-pascoa-ready',
+              'origin/presentation/colegio-deus-connosco',
           ]
 
-          allowed = set(string.ascii_letters + string.digits + '+/=')
+          specs = [
+              ('logo', 'PASCOA_LOGO', public / 'pascoa-logo.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-logo.jpg', media / 'pascoa_logo.ts'),
+              ('hero', 'PASCOA_HERO', public / 'pascoa-hero.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-hero.jpg', media / 'pascoa_hero.ts'),
+              ('community', 'PASCOA_COMMUNITY', public / 'pascoa-community.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-community.jpg', media / 'pascoa_community.ts'),
+              ('campus', 'PASCOA_CAMPUS', public / 'pascoa-campus.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-campus.jpg', media / 'pascoa_campus.ts'),
+              ('video', 'PASCOA_VIDEO', public / 'pascoa-learning-preview.mp4', 'video/mp4', '/tenants/colegio-pascoa/pascoa-learning-preview.mp4', media / 'pascoa_video.ts'),
+          ]
 
-          for const_name, source_file, destination, expected_mime, public_path, module_path in specs:
-              text = source_file.read_text(encoding='utf-8')
+          def read_at_ref(ref: str, asset: str):
+              path = f'frontend/src/tenants/colegio-pascoa/media/pascoa_{asset}.ts'
+              result = subprocess.run(['git', 'show', f'{ref}:{path}'], text=True, capture_output=True)
+              return result.stdout if result.returncode == 0 else None
+
+          def extract(text: str, expected_mime: str):
               match = re.search(r"data:([^;]+);base64,([^'\"]+)", text, re.S)
-              if not match:
-                  raise SystemExit(f'No embedded base64 payload found for {const_name} in {source_file}')
-              mime = match.group(1)
-              if mime != expected_mime:
-                  raise SystemExit(f'Unexpected MIME for {const_name}: {mime} != {expected_mime}')
+              if not match or match.group(1) != expected_mime:
+                  return None, 'missing/mime'
               payload = re.sub(r'\s+', '', match.group(2))
-              bad = [(i, repr(ch)) for i, ch in enumerate(payload) if ch not in allowed]
-              if bad:
-                  print(f'{const_name} invalid base64 chars: {bad[:24]} total={len(bad)}')
-                  raise SystemExit(f'Invalid base64 source for {const_name}')
-              data = base64.b64decode(payload, validate=True)
+              if '[...' in payload or '...]' in payload:
+                  return None, 'literal ellipsis corruption'
+              try:
+                  data = base64.b64decode(payload, validate=True)
+              except Exception as exc:
+                  return None, f'base64: {exc}'
+              if expected_mime == 'image/jpeg':
+                  if not (data.startswith(b'\xff\xd8') and data.endswith(b'\xff\xd9')):
+                      return None, 'jpeg magic/eoi'
+              elif expected_mime == 'video/mp4':
+                  if b'ftyp' not in data[:32]:
+                      return None, 'mp4 magic'
+              return data, 'ok'
 
-              if expected_mime == 'image/jpeg' and not data.startswith(b'\xff\xd8'):
-                  raise SystemExit(f'{const_name} is not a valid JPEG payload')
-              if expected_mime == 'video/mp4' and b'ftyp' not in data[:32]:
-                  raise SystemExit(f'{const_name} is not a valid MP4 payload')
+          for asset, const_name, destination, expected_mime, public_path, module_path in specs:
+              chosen = None
+              reasons = []
+              for ref in candidate_refs:
+                  text = read_at_ref(ref, asset)
+                  if text is None:
+                      reasons.append(f'{ref}:missing')
+                      continue
+                  data, reason = extract(text, expected_mime)
+                  reasons.append(f'{ref}:{reason}')
+                  if data is not None:
+                      chosen = (ref, data)
+                      break
+              if chosen is None:
+                  print(f'No intact source for {const_name}:')
+                  for reason in reasons:
+                      print('  ' + reason)
+                  raise SystemExit(1)
 
+              ref, data = chosen
               destination.write_bytes(data)
               module_path.write_text(
                   "// Presentation tenant asset path. In SaaS production this resolves from tenant object storage/CDN.\n"
                   f"export const {const_name} = '{public_path}';\n",
                   encoding='utf-8',
               )
-              print(f'{const_name}: {len(data)} bytes -> {destination}')
+              print(f'{const_name}: {len(data)} bytes from {ref} -> {destination}')
           PY
 
       - name: Verify generated files
