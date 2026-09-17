@@ -1,0 +1,22 @@
+body[data-tenant-preset='institutional'] {
+  --radius: 0.55rem;
+  --sidebar-width: 17rem;
+}
+
+body[data-tenant-preset='institutional'] .rounded-2xl {
+  border-radius: 0.85rem;
+}
+
+body[data-tenant-preset='modern'] {
+  --radius: 1rem;
+  --sidebar-width: 15.5rem;
+}
+
+body[data-tenant-preset='modern'] .rounded-2xl {
+  border-radius: 1.35rem;
+}
+
+body[data-tenant-preset='editorial'] {
+  --radius: 0.75rem;
+  --sidebar-width: 16rem;
+}
