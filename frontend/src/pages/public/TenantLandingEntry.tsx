@@ -1,5 +1,6 @@
 import { useTenant } from '@/contexts/TenantContext';
 import LandingPage from '@/pages/public/LandingPage';
+import PascoaLanding from '@/pages/public/PascoaLanding';
 import GenericTenantLanding from '@/pages/public/GenericTenantLanding';
 
 export default function TenantLandingEntry() {
@@ -7,6 +8,10 @@ export default function TenantLandingEntry() {
 
   if (activeTenant.slug === 'colegio-deus-connosco') {
     return <LandingPage />;
+  }
+
+  if (activeTenant.slug === 'colegio-pascoa') {
+    return <PascoaLanding />;
   }
 
   return <GenericTenantLanding />;
