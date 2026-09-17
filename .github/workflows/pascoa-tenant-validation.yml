@@ -27,10 +27,23 @@ jobs:
       - name: Tenant guard
         run: |
           grep -q "tenant-pascoa-002" src/data/tenants.ts
+          grep -q "PASCOA_LOGO" src/data/tenants.ts
           grep -q "Educar para Transformar" src/pages/public/PascoaLanding.tsx
+          grep -q "PASCOA_HERO" src/pages/public/PascoaLanding.tsx
+          grep -q "PASCOA_COMMUNITY" src/pages/public/PascoaLanding.tsx
+          grep -q "PASCOA_CAMPUS" src/pages/public/PascoaLanding.tsx
+          grep -q "PASCOA_VIDEO" src/pages/public/PascoaLanding.tsx
           grep -q "colegio-pascoa" src/pages/public/TenantLandingEntry.tsx
           grep -q "PascoaLogin" src/pages/auth/TenantLoginEntry.tsx
           grep -q "colegio-pascoa" src/pages/auth/TenantLoginEntry.tsx
+          grep -q "PASCOA_HERO" src/pages/auth/PascoaLogin.tsx
+          test -s src/tenants/colegio-pascoa/media/pascoa_logo.ts
+          test -s src/tenants/colegio-pascoa/media/pascoa_hero.ts
+          test -s src/tenants/colegio-pascoa/media/pascoa_community.ts
+          test -s src/tenants/colegio-pascoa/media/pascoa_campus.ts
+          test -s src/tenants/colegio-pascoa/media/pascoa_video.ts
+          ! grep -q "/tenants/colegio-pascoa/pascoa-hero.jpg" src/pages/public/PascoaLanding.tsx
+          ! grep -q "/tenants/colegio-pascoa/pascoa-learning-preview.mp4" src/pages/public/PascoaLanding.tsx
           ! grep -q "2025" src/pages/public/PascoaLanding.tsx
           ! grep -q "2026" src/pages/public/PascoaLanding.tsx
           ! grep -q "500 Alunos" src/pages/public/PascoaLanding.tsx
