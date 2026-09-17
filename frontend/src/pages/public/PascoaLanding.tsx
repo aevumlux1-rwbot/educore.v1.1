@@ -2,11 +2,15 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Heart, Menu, Play, ShieldCheck, Sparkles, UsersRound } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTenant } from '@/contexts/TenantContext';
+import { PASCOA_HERO } from '@/tenants/colegio-pascoa/media/pascoa_hero';
+import { PASCOA_COMMUNITY } from '@/tenants/colegio-pascoa/media/pascoa_community';
+import { PASCOA_CAMPUS } from '@/tenants/colegio-pascoa/media/pascoa_campus';
+import { PASCOA_VIDEO } from '@/tenants/colegio-pascoa/media/pascoa_video';
 
-const HERO = '/tenants/colegio-pascoa/pascoa-hero.jpg';
-const COMMUNITY = '/tenants/colegio-pascoa/pascoa-community.jpg';
-const CAMPUS = '/tenants/colegio-pascoa/pascoa-campus.jpg';
-const VIDEO = '/tenants/colegio-pascoa/pascoa-learning-preview.mp4';
+const HERO = PASCOA_HERO;
+const COMMUNITY = PASCOA_COMMUNITY;
+const CAMPUS = PASCOA_CAMPUS;
+const VIDEO = PASCOA_VIDEO;
 
 const values = [
   { icon: BookOpen, title: 'Ensino com propósito', copy: 'Aprendizagem acompanhada com atenção ao percurso de cada aluno.' },

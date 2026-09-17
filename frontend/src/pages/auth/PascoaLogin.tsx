@@ -6,8 +6,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import type { UserRole } from '@/types/roles';
 import { ROLE_HOME } from '@/types/roles';
+import { PASCOA_HERO } from '@/tenants/colegio-pascoa/media/pascoa_hero';
 
-const HERO = '/tenants/colegio-pascoa/pascoa-hero.jpg';
+const HERO = PASCOA_HERO;
 
 const ROLE_META: Record<UserRole, { label: string; description: string; icon: LucideIcon }> = {
   student: { label: 'Aluno', description: 'Notas, horário e percurso académico', icon: GraduationCap },
