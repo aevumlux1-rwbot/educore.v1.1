@@ -27,12 +27,35 @@ function normaliseSlug(value: string) {
     .replace(/(^-|-$)/g, '');
 }
 
+function reconcileTenants(stored: TenantConfig[]): TenantConfig[] {
+  const defaultsById = new Map(DEFAULT_TENANTS.map((tenant) => [tenant.id, tenant]));
+  const storedById = new Map(stored.map((tenant) => [tenant.id, tenant]));
+
+  // Core-defined tenants must always exist and should receive current core defaults,
+  // while preview-created tenants remain available. This prevents stale localStorage
+  // from hiding a tenant that was added in a newer application build.
+  const reconciledDefaults = DEFAULT_TENANTS.map((tenant) => {
+    const persisted = storedById.get(tenant.id);
+    if (!persisted) return tenant;
+
+    return {
+      ...tenant,
+      ...persisted,
+      branding: { ...tenant.branding, ...persisted.branding },
+      publicExperience: { ...tenant.publicExperience, ...persisted.publicExperience },
+    };
+  });
+
+  const previewOnly = stored.filter((tenant) => !defaultsById.has(tenant.id));
+  return [...reconciledDefaults, ...previewOnly];
+}
+
 function loadTenants(): TenantConfig[] {
   try {
     const raw = localStorage.getItem(TENANTS_STORAGE_KEY);
     if (!raw) return DEFAULT_TENANTS;
     const parsed = JSON.parse(raw) as TenantConfig[];
-    return parsed.length > 0 ? parsed : DEFAULT_TENANTS;
+    return reconcileTenants(Array.isArray(parsed) ? parsed : []);
   } catch {
     return DEFAULT_TENANTS;
   }
@@ -78,8 +101,9 @@ function applyTenantTheme(tenant: TenantConfig) {
 }
 
 export function TenantProvider({ children }: { children: ReactNode }) {
-  const [tenants, setTenants] = useState<TenantConfig[]>(() => loadTenants());
-  const [activeTenantId, setActiveTenantId] = useState(() => resolveInitialTenant(loadTenants()));
+  const initialTenants = useMemo(() => loadTenants(), []);
+  const [tenants, setTenants] = useState<TenantConfig[]>(initialTenants);
+  const [activeTenantId, setActiveTenantId] = useState(() => resolveInitialTenant(initialTenants));
 
   const activeTenant = useMemo(
     () => tenants.find((tenant) => tenant.id === activeTenantId) ?? tenants[0] ?? DEFAULT_TENANTS[0],
