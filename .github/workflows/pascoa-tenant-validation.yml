@@ -1,0 +1,31 @@
+name: Validate Colégio Páscoa tenant
+
+on:
+  push:
+    branches:
+      - tenant/colegio-pascoa
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Test
+        run: npm test
+      - name: Tenant guard
+        run: |
+          grep -q "tenant-pascoa-002" src/data/tenants.ts
+          grep -q "Educar para Transformar" src/pages/public/PascoaLanding.tsx
+          grep -q "colegio-pascoa" src/pages/public/TenantLandingEntry.tsx
