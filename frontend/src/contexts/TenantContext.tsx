@@ -17,6 +17,12 @@ const TenantContext = createContext<TenantContextValue | null>(null);
 const TENANTS_STORAGE_KEY = 'educore.preview.tenants.v1';
 const ACTIVE_TENANT_KEY = 'educore.preview.active-tenant.v1';
 
+// This branch is the Colégio Páscoa presentation deployment. A clean visit to
+// the public Vercel URL must therefore open Páscoa without requiring a
+// ?tenant= query parameter. Explicit query selection and an existing preview
+// selection still take precedence for multi-tenant testing.
+const PRESENTATION_DEFAULT_TENANT_SLUG = 'colegio-pascoa';
+
 function normaliseSlug(value: string) {
   return value
     .trim()
@@ -75,7 +81,8 @@ function resolveInitialTenant(tenants: TenantConfig[]) {
     // Preview storage is optional; production resolution will come from the server/domain.
   }
 
-  return tenants[0].id;
+  const presentationDefault = tenants.find((tenant) => tenant.slug === PRESENTATION_DEFAULT_TENANT_SLUG);
+  return presentationDefault?.id ?? tenants[0].id;
 }
 
 function applyTenantTheme(tenant: TenantConfig) {
@@ -186,7 +193,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   const resetPreviewTenants = useCallback(() => {
     setTenants(DEFAULT_TENANTS);
-    setActiveTenantId(DEFAULT_TENANTS[0].id);
+    const presentationDefault = DEFAULT_TENANTS.find((tenant) => tenant.slug === PRESENTATION_DEFAULT_TENANT_SLUG);
+    setActiveTenantId(presentationDefault?.id ?? DEFAULT_TENANTS[0].id);
     try {
       localStorage.removeItem(TENANTS_STORAGE_KEY);
       localStorage.removeItem(ACTIVE_TENANT_KEY);
