@@ -60,20 +60,24 @@ Os assets fornecidos incluem campanhas de anos diferentes. Não transformar auto
 - introdução de línguas específicas por classe;
 - qualquer preço, horário, vaga ou calendário.
 
-## Assets locais esperados
+## Media da apresentação
 
-A landing usa os seguintes paths públicos:
+Para garantir que um simples `git pull` produz a experiência de apresentação sem uma etapa manual de copiar binários, esta branch contém uma versão comprimida dos media fornecidos como módulos TypeScript com data URIs:
 
 ```text
-frontend/public/tenants/colegio-pascoa/
-  pascoa-logo.jpg
-  pascoa-hero.jpg
-  pascoa-community.jpg
-  pascoa-campus.jpg
-  pascoa-learning-preview.mp4
+frontend/src/tenants/colegio-pascoa/media/
+  pascoa_logo.ts
+  pascoa_hero.ts
+  pascoa_community.ts
+  pascoa_campus.ts
+  pascoa_video.ts
 ```
 
-Estes assets são originados dos materiais fornecidos para a apresentação e devem posteriormente migrar para object storage/configuração de tenant quando o backend SaaS estiver pronto.
+A landing e o login importam estes módulos directamente. O vídeo inline é um preview comprimido para a apresentação, não o master original.
+
+**Isto é packaging de apresentação, não a arquitectura de media de produção.** Na versão SaaS, logótipos, fotografia, vídeo e outros assets devem migrar para object storage tenant-aware, com metadados/configuração persistidos no servidor e entrega via CDN/URLs versionadas.
+
+Os ficheiros master fornecidos pelo cliente devem ser preservados fora desta optimização de apresentação.
 
 ## Fases
 
@@ -81,29 +85,33 @@ Estes assets são originados dos materiais fornecidos para a apresentação e de
 - tenant registry;
 - theme;
 - modules/roles;
-- branding paths.
+- branding tenant-aware.
 
 ### Fase 2 — Public landing
-- implementar direcção visual aprovada;
-- responsive;
-- assets reais;
-- vídeo lazy/preload metadata.
+- direcção visual aprovada implementada;
+- hero integrado;
+- composição editorial;
+- media reais;
+- preview de vídeo;
+- responsive via breakpoints existentes.
 
 ### Fase 3 — Login / portal continuity
-- login tenant-aware;
+- login dedicado Páscoa;
 - logo/cores Páscoa;
+- routing tenant-aware;
 - continuar para o mesmo ERP core;
 - manter roles e entitlements.
 
 ### Fase 4 — QA apresentação
-- desktop e mobile;
+- CI: install/build/test/tenant guard;
+- validação local/browser em desktop e mobile;
 - navegação;
 - ausência de conteúdo antigo apresentado como actual;
 - portal/login;
 - performance básica.
 
 ### Fase 5 — Produção SaaS
-- substituir assets/versionamento em Git por object storage;
+- substituir media inline/versionamento em Git por object storage;
 - tenant resolution por domínio;
 - Platform IAM;
 - API + PostgreSQL;
