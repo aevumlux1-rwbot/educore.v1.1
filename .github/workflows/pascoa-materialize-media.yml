@@ -21,12 +21,15 @@ jobs:
       - name: Fetch binary source branch
         run: git fetch origin tenant/colegio-pascoa-binaries:refs/remotes/origin/tenant/colegio-pascoa-binaries
 
-      - name: Materialize tenant media
+      - name: Materialize tenant media from known-good source branch
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p frontend/public/tenants/colegio-pascoa
-          git show origin/tenant/colegio-pascoa-binaries:frontend/src/tenants/colegio-pascoa/media/pascoa_logo.ts > /tmp/pascoa_logo_source.ts
+          mkdir -p frontend/public/tenants/colegio-pascoa /tmp/pascoa-media
+
+          for asset in logo hero community campus video; do
+            git show "origin/tenant/colegio-pascoa-binaries:frontend/src/tenants/colegio-pascoa/media/pascoa_${asset}.ts" > "/tmp/pascoa-media/pascoa_${asset}.ts"
+          done
 
           python - <<'PY'
           from pathlib import Path
@@ -35,21 +38,22 @@ jobs:
           root = Path('frontend')
           media = root / 'src/tenants/colegio-pascoa/media'
           public = root / 'public/tenants/colegio-pascoa'
+          source = Path('/tmp/pascoa-media')
           public.mkdir(parents=True, exist_ok=True)
 
           specs = [
-              ('PASCOA_LOGO', Path('/tmp/pascoa_logo_source.ts'), public / 'pascoa-logo.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-logo.jpg', media / 'pascoa_logo.ts'),
-              ('PASCOA_HERO', media / 'pascoa_hero.ts', public / 'pascoa-hero.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-hero.jpg', media / 'pascoa_hero.ts'),
-              ('PASCOA_COMMUNITY', media / 'pascoa_community.ts', public / 'pascoa-community.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-community.jpg', media / 'pascoa_community.ts'),
-              ('PASCOA_CAMPUS', media / 'pascoa_campus.ts', public / 'pascoa-campus.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-campus.jpg', media / 'pascoa_campus.ts'),
-              ('PASCOA_VIDEO', media / 'pascoa_video.ts', public / 'pascoa-learning-preview.mp4', 'video/mp4', '/tenants/colegio-pascoa/pascoa-learning-preview.mp4', media / 'pascoa_video.ts'),
+              ('PASCOA_LOGO', source / 'pascoa_logo.ts', public / 'pascoa-logo.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-logo.jpg', media / 'pascoa_logo.ts'),
+              ('PASCOA_HERO', source / 'pascoa_hero.ts', public / 'pascoa-hero.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-hero.jpg', media / 'pascoa_hero.ts'),
+              ('PASCOA_COMMUNITY', source / 'pascoa_community.ts', public / 'pascoa-community.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-community.jpg', media / 'pascoa_community.ts'),
+              ('PASCOA_CAMPUS', source / 'pascoa_campus.ts', public / 'pascoa-campus.jpg', 'image/jpeg', '/tenants/colegio-pascoa/pascoa-campus.jpg', media / 'pascoa_campus.ts'),
+              ('PASCOA_VIDEO', source / 'pascoa_video.ts', public / 'pascoa-learning-preview.mp4', 'video/mp4', '/tenants/colegio-pascoa/pascoa-learning-preview.mp4', media / 'pascoa_video.ts'),
           ]
 
-          for const_name, source, destination, expected_mime, public_path, module_path in specs:
-              text = source.read_text(encoding='utf-8')
+          for const_name, source_file, destination, expected_mime, public_path, module_path in specs:
+              text = source_file.read_text(encoding='utf-8')
               match = re.search(r"data:([^;]+);base64,([^'\"]+)", text, re.S)
               if not match:
-                  raise SystemExit(f'No embedded base64 payload found for {const_name} in {source}')
+                  raise SystemExit(f'No embedded base64 payload found for {const_name} in {source_file}')
               mime = match.group(1)
               if mime != expected_mime:
                   raise SystemExit(f'Unexpected MIME for {const_name}: {mime} != {expected_mime}')
