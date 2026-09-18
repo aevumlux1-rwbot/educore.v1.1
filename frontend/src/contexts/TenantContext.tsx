@@ -16,6 +16,11 @@ interface TenantContextValue {
 const TenantContext = createContext<TenantContextValue | null>(null);
 const TENANTS_STORAGE_KEY = 'educore.preview.tenants.v1';
 const ACTIVE_TENANT_KEY = 'educore.preview.active-tenant.v1';
+const PASCOA_DEPLOYMENT_HOSTNAME = 'educore-colegiopascoa.up.railway.app';
+
+function isPascoaDeployment() {
+  return typeof window !== 'undefined' && window.location.hostname === PASCOA_DEPLOYMENT_HOSTNAME;
+}
 
 function normaliseSlug(value: string) {
   return value
@@ -28,6 +33,7 @@ function normaliseSlug(value: string) {
 }
 
 function loadTenants(): TenantConfig[] {
+  if (isPascoaDeployment()) return DEFAULT_TENANTS;
   try {
     const raw = localStorage.getItem(TENANTS_STORAGE_KEY);
     if (!raw) return DEFAULT_TENANTS;
@@ -39,6 +45,9 @@ function loadTenants(): TenantConfig[] {
 }
 
 function resolveInitialTenant(tenants: TenantConfig[]) {
+  if (isPascoaDeployment()) {
+    return tenants.find((tenant) => tenant.slug === 'colegio-pascoa')?.id ?? tenants[0].id;
+  }
   const querySlug = new URLSearchParams(window.location.search).get('tenant');
   if (querySlug) {
     const byQuery = tenants.find((tenant) => tenant.slug === querySlug);
@@ -64,7 +73,7 @@ function applyTenantTheme(tenant: TenantConfig) {
   root.style.setProperty('--sidebar-ring', tenant.branding.accentHsl);
   root.style.setProperty('--brand-orange', tenant.branding.accentHsl);
   document.body.dataset.tenantPreset = tenant.branding.experiencePreset;
-  document.title = `${tenant.branding.displayName} · EduCore`;
+  document.title = isPascoaDeployment() ? 'Colégio Páscoa | EduCore' : `${tenant.branding.displayName} · EduCore`;
 
   if (tenant.branding.favicon) {
     let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
@@ -73,7 +82,7 @@ function applyTenantTheme(tenant: TenantConfig) {
       link.rel = 'icon';
       document.head.appendChild(link);
     }
-    link.href = tenant.branding.favicon;
+    link.href = isPascoaDeployment() ? '/tenants/colegio-pascoa/pascoa-logo.jpg' : tenant.branding.favicon;
   }
 }
 
@@ -82,7 +91,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [activeTenantId, setActiveTenantId] = useState(() => resolveInitialTenant(loadTenants()));
 
   const activeTenant = useMemo(
-    () => tenants.find((tenant) => tenant.id === activeTenantId) ?? tenants[0] ?? DEFAULT_TENANTS[0],
+    () => isPascoaDeployment()
+      ? tenants.find((tenant) => tenant.slug === 'colegio-pascoa') ?? DEFAULT_TENANTS[1]
+      : tenants.find((tenant) => tenant.id === activeTenantId) ?? tenants[0] ?? DEFAULT_TENANTS[0],
     [tenants, activeTenantId],
   );
 
@@ -162,7 +173,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   const resetPreviewTenants = useCallback(() => {
     setTenants(DEFAULT_TENANTS);
-    setActiveTenantId(DEFAULT_TENANTS[0].id);
+    setActiveTenantId(isPascoaDeployment() ? DEFAULT_TENANTS[1].id : DEFAULT_TENANTS[0].id);
     try {
       localStorage.removeItem(TENANTS_STORAGE_KEY);
       localStorage.removeItem(ACTIVE_TENANT_KEY);
